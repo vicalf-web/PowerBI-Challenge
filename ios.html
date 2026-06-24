@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Challenge Técnico - iOS</title>
+    <style>
+        body { font-family: 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; color: #2d3436; padding: 40px 20px; margin: 0; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        #timer-sticky { position: fixed; top: 20px; right: 20px; background: #1a1a1a; color: white; padding: 15px 25px; border-radius: 8px; font-weight: bold; font-size: 1.2rem; font-family: monospace; z-index: 1000; }
+        .question { margin-bottom: 35px; padding: 25px; border-radius: 10px; background: #ffffff; border: 1px solid #edf2f7; }
+        .question p { font-weight: 600; font-size: 1.15rem; margin-top: 0; color: #2d3748; }
+        label { display: block; margin-bottom: 12px; cursor: pointer; padding: 12px 15px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; }
+        label:hover { border-color: #4a5568; background: #edf2f7; }
+        input[type="radio"] { margin-right: 12px; transform: scale(1.2); }
+        button { background: #1a1a1a; color: white; border: none; padding: 18px 50px; border-radius: 6px; cursor: pointer; font-size: 1rem; font-weight: bold; text-transform: uppercase; }
+        #thanks-box { display: none; text-align: center; padding: 40px; }
+        h1 { text-align: center; text-transform: uppercase; letter-spacing: 2px; }
+    </style>
+</head>
+<body>
+
+<div id="timer-sticky">Tiempo: <span id="time">15:00</span></div>
+
+<div class="container" id="main-container">
+    <form id="hiddenRecruiterForm" action="https://formspree.io/f/mzdlzyab" method="POST" style="display:none;">
+        <input type="text" name="Candidato" id="form_nombre">
+        <input type="email" name="Email" id="form_email">
+        <input type="text" name="Tecnologia_Evaluada" id="form_tech">
+        <input type="text" name="Puntaje" id="form_score">
+        <input type="text" name="Seniority_Calculado" id="form_seniority">
+        <input type="text" name="Respuestas" id="form_details">
+    </form>
+
+    <h1 id="exam-title">Cargando Examen...</h1>
+    <form id="quizForm">
+        <div id="questions-container"></div>
+        <div style="text-align:center; margin-top: 50px;">
+            <button type="button" id="submitBtn" onclick="processAndSend(false)">Finalizar Test</button>
+        </div>
+    </form>
+</div>
+
+<div class="container" id="thanks-box">
+    <h2>¡Evaluación Finalizada!</h2>
+    <p style="color: #4a5568; font-size: 1.1rem;">Tus respuestas han sido registradas de manera segura.</p>
+    <p style="color: #718096;">El equipo de Recruiting revisará tu perfil y se pondrá en contacto contigo a la brevedad.</p>
+</div>
+
+<script>
+    const examDatabase = {
+        ios_jr: {
+            title: "iOS Developer - Junior Assessment",
+            questions: [
+                { id: 1, p: "1. ¿Qué es un 'Optional' en Swift y qué problema resuelve principalmente?", a: "Es una función de la interfaz de usuario para permitir vistas opcionales.", b: "Es un tipo que representa la presencia o ausencia de un valor, evitando errores fatales por referencias nulas en tiempo de ejecución.", c: "Es una directiva de compilación para omitir el peso de las librerías.", correct: "B" },
+                { id: 2, p: "2. ¿Cuál es la diferencia principal entre declarar una variable con 'let' y otra con 'var' en Swift?", a: "'let' es exclusivo para números enteros y 'var' para textos complejos.", b: "'let' define una constante inmutable y 'var' define una variable cuyo valor puede modificarse.", c: "'var' consume el doble de memoria RAM dentro del procesador Apple Silicon.", correct: "B" },
+                { id: 3, p: "3. ¿Qué herramienta o entorno de desarrollo integrado (IDE) es el estándar oficial para compilar apps iOS de forma nativa?", a: "Visual Studio Code", b: "Xcode", c: "Android Studio", correct: "B" },
+                { id: 4, p: "4. ¿Qué framework moderno e integrado introdujo Apple para diseñar interfaces de usuario de forma declarativa usando puro código Swift?", a: "UIKit", b: "SwiftUI", c: "Storyboard Elements", correct: "B" },
+                { id: 5, p: "5. ¿Cuál es la función principal del archivo Info.plist en un proyecto iOS?", a: "Almacenar el código fuente de la pantalla de inicio (LaunchScreen).", b: "Contener un diccionario de propiedades de configuración del sistema, como permisos de privacidad de cámara o geolocalización.", c: "Guardar los datos de sesión persistentes de las cuentas de usuario.", correct: "B" },
+                { id: 6, p: "6. En SwiftUI, ¿qué decorador de propiedad (@propertyWrapper) usarías para declarar una fuente de verdad simple y local que pertenece exclusivamente a una View?", a: "@Binding", b: "@State", c: "@ObservedObject", correct: "B" },
+                { id: 7, p: "7. ¿Qué significa el desempaquetado seguro (Optional Unwrapping) mediante la estructura 'if let'?", a: "Validar que una conexión a internet responda con código HTTP 200.", b: "Verificar si un opcional contiene un valor real y, de ser así, asignarlo a una constante temporal para usarlo de forma segura dentro del bloque.", c: "Borrar el contenido de una variable de la memoria RAM de inmediato.", correct: "B" },
+                { id: 8, p: "8. ¿Cuál es el propósito del operador de coalescencia nula (Nil Coalescing Operator) representado por '??' en Swift?", a: "Comparar si dos objetos lógicos son exactamente idénticos en memoria.", b: "Proporcionar un valor por defecto en caso de que un elemento opcional resulte ser nulo (nil).", c: "Terminar la ejecución de un bucle de repetición repetitivo.", correct: "B" },
+                { id: 9, p: "9. ¿Qué tipo de colección usarías si requerís asegurar que todos sus elementos sean únicos y no admitan duplicados?", a: "Array", b: "Set", c: "Dictionary", correct: "B" },
+                { id: 10, p: "10. ¿Cuál es el ciclo de vida o método inicial de una View en SwiftUI que se ejecuta de forma nativa cuando esta aparece en pantalla?", a: "onDisappear", b: "onAppear", c: "viewDidLoad", correct: "B" },
+                { id: 11, p: "11. ¿Cuál es el gestor de dependencias oficial desarrollado por Apple que viene integrado directamente en Xcode?", a: "CocoaPods", b: "Swift Package Manager (SPM)", c: "Carthage Binary Linker", correct: "B" },
+                { id: 12, p: "12. En Swift, ¿cuál es la diferencia de comportamiento fundamental entre un Struct y una Class?", a: "Los Structs permiten herencia múltiple y las Classes no la permiten.", b: "Los Structs son tipos de valor (Value Types) que se copian al pasarse; las Classes son tipos de referencia (Reference Types) apuntando al mismo espacio de memoria.", c: "Las Classes no permiten el uso de métodos internos.", correct: "B" },
+                { id: 13, p: "13. ¿Para qué se utiliza la palabra clave 'guard let' en Swift?", a: "Para encriptar las credenciales que viajan por peticiones web.", b: "Para validar condiciones de manera temprana, saliendo del método de inmediato si el opcional evaluado es nulo, evitando anidamientos excesivos.", c: "Para proteger un archivo contra la lectura externa en el disco.", correct: "B" },
+                { id: 14, p: "14. ¿Qué es un 'Closure' en el lenguaje de programación Swift?", a: "Un archivo de configuración que bloquea la compilación si hay errores de diseño.", b: "Un bloque autónomo de funcionalidad y código que puede ser pasado y utilizado en cualquier parte, similar a las funciones anónimas o lambdas.", c: "La etiqueta de cierre que requiere cada bloque de código de SwiftUI.", correct: "B" },
+                { id: 15, p: "15. ¿Cuál es la función principal de la cola Dispatch Queue llamada 'DispatchQueue.main'?", a: "Procesar descargas pesadas de archivos JSON en segundo plano de manera asíncrona.", b: "Ejecutar y actualizar todas las tareas directamente relacionadas con la interfaz de usuario (UI Layout) de forma segura.", c: "Gestionar el cifrado de datos biométricos del FaceID.", correct: "B" },
+                { id: 16, p: "16. ¿Qué protocolo nativo de Swift debés adoptar en una estructura de datos para que pueda convertirse fácilmente a formato JSON mediante un JSONEncoder?", a: "Identifiable", b: "Codable", c: "Equatable", correct: "B" },
+                { id: 17, p: "17. En el desarrollo con UIKit clásico, ¿qué componente representa al controlador principal encargado de gestionar una pantalla completa y sus vistas subordinadas?", a: "UIView", b: "UIViewController", c: "UIApplicationDelegate", correct: "B" },
+                { id: 18, p: "18. ¿Qué significa el término ARC en el contexto de la gestión de memoria interna en dispositivos Apple?", a: "Asynchronous Resource Coordinator.", b: "Automatic Reference Counting (Conteo Automático de Referencias que libera objetos cuando ya nadie los apunta).", c: "Apple Runtime Compiler.", correct: "B" },
+                { id: 19, p: "19. ¿Cuál de los siguientes componentes usarías en SwiftUI para organizar elementos de la interfaz de usuario en una disposición puramente vertical?", a: "HStack", b: "VStack", c: "ZStack", correct: "B" },
+                { id: 20, p: "20. ¿Qué extensión de archivo tienen los archivos de código fuente nativo escritos en Swift?", a: ".swiftui", b: ".swift", c: ".storyboard", correct: "B" }
+            ]
+        },
+        ios_ssr: {
+            title: "iOS Developer - Semi-Senior Assessment",
+            questions: [
+                { id: 1, p: "1. ¿Qué problema crítico de memoria se genera si dos instancias de clase mantienen referencias de tipo fuerte ('strong') cruzadas entre sí, y cómo se soluciona?", a: "Se genera un desbordamiento de pila (Stack Overflow); se soluciona aumentando la memoria virtual de Xcode.", b: "Se produce una fuga de memoria por ciclo de referencia de retención (Retain Cycle); se soluciona declarando una de las variables como 'weak' o 'unowned'.", c: "El procesador se apaga; se soluciona quitando el patrón de delegación.", correct: "B" },
+                { id: 2, p: "2. En SwiftUI, ¿cuál es la diferencia de uso conceptual entre los Property Wrappers @ObservedObject y @StateObject?", a: "@StateObject solo acepta tipos de datos primitivos y @ObservedObject almacena structs de datos.", b: "@StateObject crea e inicializa el objeto garantizando que sobreviva a las recomposiciones de la View contenedora; @ObservedObject solo observa un objeto cuya instancia es inyectada externamente.", c: "No hay diferencia real, son alias del mismo compilador.", correct: "B" },
+                { id: 3, p: "3. ¿Cuál es el propósito del framework Combine introducido de forma nativa por Apple?", a: "Facilitar el empaquetado unificado de código escrito en Objective-C con código moderno de Swift.", b: "Proporcionar una API reactiva declarativa para procesar valores a lo largo del tiempo mediante el uso de Publishers y Subscribers.", c: "Optimizar el tamaño físico de las bases de datos de Core Data.", correct: "B" },
+                { id: 4, p: "4. Trabajando con concurrencia moderna en Swift (iOS 15+), ¿qué ventaja aporta el uso de la directiva 'async/await' sobre los tradicionales Completion Handlers basados en Closures?", a: "Elimina la necesidad de utilizar hilos asíncronos en el procesador.", b: "Permite escribir código asíncrono secuencial y legible, simplificando drásticamente el manejo de errores mediante try-catch y eliminando la pirámide de la perdición (Pyramid of Doom).", c: "Fuerza a todas las llamadas web a ejecutarse siempre de manera síncrona.", correct: "B" },
+                { id: 5, p: "5. ¿Para qué sirve implementar el patrón de diseño Delegación (Delegation Pattern) de forma clásica en el SDK de iOS?", a: "Para duplicar la herencia de clases permitiendo herencia múltiple de estructuras nativas.", b: "Permitir que un objeto comunique eventos o delegue tareas específicas a otro objeto sin necesidad de acoplar fuertemente ambas clases.", c: "Para ocultar los archivos privados de la app ante la App Store.", correct: "B" },
+                { id: 6, p: "6. ¿Qué función cumple la cláusula '[weak self]' dentro de la lista de captura (Capture List) de un Closure asíncrono?", a: "Indica que el compilador debe ejecutar el closure con menor prioridad de CPU.", b: "Captura la referencia a la clase actual de forma débil para prevenir la formación de Retain Cycles involuntarios que causen pérdidas de memoria.", c: "Fuerza a que self sea desempaquetado de forma destructiva inmediatamente.", correct: "B" },
+                { id: 7, p: "7. ¿Cuál es el rol principal de Core Data dentro del ecosistema de desarrollo de software para iOS?", a: "Cifrar la comunicación HTTPS mediante el uso de algoritmos SSL pinning.", b: "Proporcionar un framework robusto de persistencia de datos y mapeo de objetos gráficos para guardar el modelo de la aplicación de forma local.", c: "Manejar las notificaciones push enriquecidas en tiempo real.", correct: "B" },
+                { id: 8, p: "8. En SwiftUI, ¿para qué sirve utilizar el decorador de propiedad @Binding?", a: "Para definir una constante global accesible desde cualquier archivo del proyecto.", b: "Para crear una referencia bidireccional y conectada con una fuente de verdad (como un @State) almacenada en una View padre o componente externo.", c: "Para forzar la renderización de imágenes vectoriales pesadas.", correct: "B" },
+                { id: 9, p: "9. Al utilizar URLSession para descargar información de una API REST, ¿qué método nativo de la tarea debés invocar explícitamente para iniciar la petición de red?", a: "start()", b: "resume()", c: "execute()", correct: "B" },
+                { id: 10, p: "10. ¿Cuál es el beneficio de definir un protocolo con requisitos opcionales mediante el uso del modificador '@objc protocol'?", a: "Permite compilar el código en sistemas operativos Linux o Windows.", b: "Habilita la compatibilidad con el runtime de Objective-C para que las clases que lo adopten no estén obligadas a implementar todos los métodos definidos.", c: "Reduce el peso del ejecutable binario de la aplicación.", correct: "B" },
+                { id: 11, p: "11. ¿Qué es un 'Computed Property' (Propiedad Computada) en Swift?", a: "Una propiedad cuyo valor se calcula remotamente en un servidor en la nube.", b: "Una propiedad que no almacena un valor físico directo, sino que proporciona un getter (y opcionalmente un setter) para calcular su valor de forma dinámica cada vez que es accedida.", c: "Una variable exclusiva para operaciones matriciales avanzadas.", correct: "B" },
+                { id: 12, p: "12. ¿Qué utilidad tiene el tipo 'Result<Success, Failure>' incorporado en la librería estándar de Swift?", a: "Gestionar el flujo de transacciones monetarias integradas con Apple Pay.", b: "Representar el resultado de una operación que puede ser exitosa (devolviendo un valor) o fallida (devolviendo un error específico), ideal para flujos asíncronos.", c: "Medir los benchmarks de consumo de memoria y rendimiento.", correct: "B" },
+                { id: 13, p: "13. En el motor de diseño de interfaces clásicas de UIKit, ¿qué función cumplen los objetos NSLayoutConstraint?", a: "Almacenar archivos de audio en formato comprimido.", b: "Definir las relaciones matemáticas geométricas y restricciones de tamaño/posición entre las vistas bajo el paradigma de Auto Layout.", c: "Administrar el enrutamiento de transiciones de pantallas complejas.", correct: "B" },
+                { id: 14, p: "14. ¿Cuál es el propósito del framework nativo Security y las APIs de Keychain en iOS?", a: "Bloquear ataques de denegación de servicio en la red móvil.", b: "Proporcionar un contenedor encriptado de forma segura por hardware para almacenar credenciales, contraseñas, tokens y datos altamente sensibles del usuario.", c: "Validar las firmas digitales de los desarrolladores externos.", correct: "B" },
+                { id: 15, p: "15. ¿Qué significa el modificador de control de acceso 'fileprivate' en Swift?", a: "Que el elemento solo puede guardarse físicamente en la carpeta Documentos del dispositivo.", b: "Que la propiedad o método es accesible únicamente dentro del propio archivo de código fuente de Swift donde fue definido originalmente.", c: "Que requiere una contraseña para poder ser modificado desde Xcode.", correct: "B" },
+                { id: 16, p: "16. ¿Cuál es el propósito del property wrapper @EnvironmentObject en SwiftUI?", a: "Configurar las variables globales del servidor de desarrollo local.", b: "Inyectar un modelo de datos observable en todo un árbol de vistas subordinadas sin necesidad de pasarlo manualmente de componente en componente a través del constructor.", c: "Monitorear la temperatura del hardware del dispositivo Apple.", correct: "B" },
+                { id: 17, p: "17. Al trabajar con colecciones en SwiftUI (como List o ForEach), ¿para qué sirve implementar el protocolo 'Identifiable' en las estructuras del modelo?", a: "Para cumplir las leyes de protección de datos de los usuarios de Apple.", b: "Para permitir que el framework distinga de manera única cada elemento de la colección mediante una propiedad 'id', optimizando las animaciones y re-renderizados.", c: "Para registrar los elementos en una base de datos externa de forma remota.", correct: "B" },
+                { id: 18, p: "18. ¿Qué diferencia principal existe entre lanzar un error mediante 'try?' y hacerlo con 'try!'?", a: "'try?' detiene la ejecución del dispositivo; 'try!' maneja el error de forma silenciosa en la terminal.", b: "'try?' convierte el resultado en un opcional devolviendo nil si ocurre un fallo; 'try!' asume que la operación nunca fallará, provocando un crash inmediato de la app si hay un error.", c: "No hay diferencia estructural, ambos requieren un bloque catch obligatorio.", correct: "B" },
+                { id: 19, p: "19. ¿Cuál es el propósito principal de usar extensiones (extensions) en Swift?", a: "Permitir que la app se ejecute en pantallas externas conectadas por AirPlay.", b: "Agregar nueva funcionalidad (métodos, propiedades computadas, conformidad a protocolos) a clases, estructuras, enumeraciones o protocolos existentes de forma limpia.", c: "Aumentar virtualmente el tamaño límite de almacenamiento asignado a la app.", correct: "B" },
+                { id: 20, p: "20. ¿Qué herramienta integrada de Xcode usarías para analizar y detectar problemas profundos de fugas de memoria o cuellos de botella de renderizado en la UI?", a: "Terminal bash emulada.", b: "Instruments (utilizando plantillas especializadas como Leaks, Allocations o Time Profiler).", c: "El inspector de jerarquía de vistas de depuración simple de variables.", correct: "B" }
+            ]
+        },
+        ios_snr: {
+            title: "iOS Developer - Senior Assessment",
+            questions: [
+                { id: 1, p: "1. ¿Qué ventaja técnica crítica a nivel de seguridad de hilos (thread safety) aporta el concepto de 'Actor' introducido en la concurrencia moderna de Swift?", a: "Los Actors duplican la velocidad de procesamiento gráfico al ejecutarse directo en los núcleos de la GPU.", b: "Aseguran el acceso mutuo exclusivo a su estado mutable aislando sus propiedades, previniendo de forma nativa las condiciones de carrera (Data Races) en entornos multihilo.", c: "Deshabilitan el conteo de referencias automáticas ARC dentro de su contexto funcional.", correct: "B" },
+                { id: 2, p: "2. ¿Cómo funciona conceptualmente el mecanismo de optimización de SwiftUI para actualizar la interfaz de usuario y qué rol cumple el árbol de View jerárquico?", a: "SwiftUI redibuja todos los elementos del lienzo físico de la pantalla en cada frame; el árbol sirve de caché de imágenes binarias.", b: "Las Views son descripciones eficientes y ligeras; SwiftUI calcula un árbol de tipos de datos, compara la estructura mediante un algoritmo de diferenciación (diffing) y actualiza únicamente los nodos modificados del árbol de renderizado real de forma selectiva.", c: "SwiftUI delega la totalidad del procesamiento a scripts web embebidos invisibles al usuario.", correct: "B" },
+                { id: 3, p: "3. Diseñando una arquitectura robusta a gran escala, ¿qué diferencia conceptual y de comportamiento en la gestión de memoria existe entre inyectar dependencias con alcance 'unowned' en lugar de 'weak'?", a: "'unowned' se almacena de forma cifrada y 'weak' guarda el objeto en texto plano.", b: "Ambas evitan ciclos de retención, pero 'weak' se convierte automáticamente en nil cuando el objeto es liberado (es un opcional); 'unowned' asume que el objeto nunca será destruido mientras exista la referencia, lanzando un crash fatal si se accede a él tras su liberación.", c: "'weak' ralentiza la CPU debido a algoritmos asíncronos obligatorios de búsqueda en disco.", correct: "B" },
+                { id: 4, p: "4. ¿Cómo implementas de manera segura y eficiente la técnica de 'SSL Pinning' en la capa de red utilizando URLSession para mitigar ataques de Man-in-the-Middle (MitM)?", a: "Hardcodeando las contraseñas de los servidores dentro del archivo Info.plist de la aplicación.", b: "Implementando el método de delegación urlSession(_:didReceive:completionHandler:) de URLSessionDelegate para evaluar de forma explícita la clave pública o el certificado del servidor contra los assets locales de la app.", c: "Habilitando las opciones permisivas globales de App Transport Security (ATS) en la red.", correct: "B" },
+                { id: 5, p: "5. ¿Qué beneficio y qué cambios arquitectónicos introduce el framework moderno SwiftData en comparación con el esquema tradicional de Core Data para la persistencia?", a: "SwiftData elimina la posibilidad de persistir datos de forma local delegando todo a servidores remotos de CloudKit.", b: "Utiliza macros modernas del lenguaje Swift para definir modelos directamente sobre clases puras sin necesidad de editores visuales xcdatamodeld, integrándose de forma nativa y fluida con el ecosistema de SwiftUI.", c: "Deshabilita por completo el uso de migraciones de bases de datos para simplificar el código.", correct: "B" },
+                { id: 6, p: "6. Evaluando el rendimiento de la UI, ¿qué impacto técnico tiene realizar operaciones pesadas o sincronizaciones de archivos masivas dentro de la cola del Main Thread y cómo lo solucionas?", a: "Se reduce temporalmente la calidad de definición de las imágenes; se mitiga reiniciando Xcode.", b: "Se bloquea el bucle de eventos del sistema provocando el congelamiento de la interfaz (tirones de frames) y activando el mecanismo de Watchdog de iOS que liquida el proceso de la app; se soluciona derivando la carga a colas globales en segundo plano (background queues) mediante GCD o tareas asíncronas cooperativas.", c: "Aumenta de forma descontrolada la velocidad de refresco de la pantalla ProMotion.", correct: "B" },
+                { id: 7, p: "7. ¿Para qué sirve configurar la propiedad 'dynamic' o el modificador '@objc' en las declaraciones de métodos en arquitecturas iOS avanzadas?", a: "Para compilar el código fuente directo en navegadores web remotos.", b: "Para instruir al compilador a que utilice el despacho dinámico (Dynamic Dispatch) basado en el runtime de Objective-C (Message Passing) en lugar del despacho estático por tabla tradicional de Swift, necesario para herramientas de mocks avanzados o KVO.", c: "Para permitir que la app se ejecute en versiones de iOS obsoletas del año 2010.", correct: "B" },
+                { id: 8, p: "8. ¿Cómo estructurarías un sistema modularizado complejo (Modular Architecture) para reducir de forma drástica los tiempos de compilación limpia (clean build times) utilizando frameworks dinámicos versus estáticos?", a: "Escribiendo la totalidad de la lógica de negocio en un único archivo modularizado monolítico gigante.", b: "Utilizando bibliotecas estáticas (Static Libraries) para código que cambia poco, permitiendo al compilador enlazar el binario directamente en tiempo de build, y optimizando las fronteras de los módulos mediante el uso de interfaces abstractas.", c: "Deshabilitando las capacidades de optimización de optimización de código del compilador de Xcode de producción.", correct: "B" },
+                { id: 9, p: "9. Al implementar una estrategia de pruebas integrales, ¿cuál es el beneficio principal de emplear el framework XCTest utilizando 'XCTestExpectation'?", a: "Automatizar el diseño estético de los componentes visuales del frontend.", b: "Permitir la validación rigurosa de flujos lógicos asíncronos (como llamadas HTTP o respuestas diferidas de bases de datos), pausando la ejecución de la prueba hasta que se cumpla la expectativa o se agote el tiempo de timeout configurado.", c: "Simular fallos físicos en el hardware interno del procesador de pruebas.", correct: "B" },
+                { id: 10, p: "10. ¿Qué riesgo de estabilidad y consistencia de datos previene la correcta gestión del contexto de Core Data mediante el uso de 'perform' o 'performAndWait'?", a: "Previene que los archivos binarios compilados de la app se corrompan al ser subidos a App Store Connect.", b: "Garantiza de forma estricta que las operaciones sobre el contexto persistente se ejecuten de manera segura en la cola de subprocesos interna asignada a dicho contexto, evitando violaciones de concurrencia multihilo de Core Data.", c: "Elimina de forma irreversible todos los registros corruptos de la memoria caché.", correct: "B" },
+                { id: 11, p: "11. En la concurrencia moderna de Swift, ¿cuál es la diferencia crítica en el comportamiento operativo de un TaskGroup frente al uso libre de tareas estructuradas tradicionales independientes?", a: "TaskGroup obliga a que todas las operaciones se realicen en el hilo síncrono principal de UI.", b: "TaskGroup proporciona un control preciso y estructurado para lanzar una cantidad dinámica de subtareas en paralelo, gestionando de forma automática e integrada la cancelación jerárquica y la recolección coordinada de resultados.", c: "TaskGroup consume de forma exclusiva recursos de la tarjeta gráfica externa.", correct: "B" },
+                { id: 12, p: "12. ¿Qué significa el concepto de 'Opaque Type' (Tipo Opaco) representado por la palabra clave 'some' en firmas como 'var body: some View' de SwiftUI?", a: "Ocultar el código de la vista mediante algoritmos criptográficos para evitar plagios.", b: "Indicar al compilador que el método retorna un tipo concreto que adopta el protocolo especificado, pero manteniendo el tipo exacto oculto para el llamador externo, permitiendo al framework optimizar el rendimiento en tiempo de compilación preservando el tipado estático fuerte.", c: "Declarar que la vista tiene una opacidad del 50% de forma visual.", correct: "B" },
+                { id: 13, p: "13. ¿Qué técnica técnica aplicarías para optimizar de forma avanzada la renderización de listas jerárquicas gigantes e infinitas en SwiftUI que cargan contenido de imágenes remotas?", a: "Forzar la recarga continua del componente de la lista completa usando un temporizador recurrente de un milisegundo.", b: "Implementar LazyStacks o estructuras LazyVGrid junto con un mecanismo robusto de caché de imágenes en disco/memoria RAM, utilizando cancelaciones activas de descarga cuando las celdas salgan de la zona visible del viewport.", c: "Migrar el sistema gráfico de SwiftUI a layouts XML antiguos heredados.", correct: "B" },
+                { id: 14, p: "14. ¿Cuál es el impacto arquitectónico y funcional de la macro '@MainActor' aplicada sobre una clase de tipo ViewModel en Swift moderno?", a: "Hacer que la clase sea accesible exclusivamente desde la pantalla principal de inicio de la aplicación.", b: "Garantizar de forma automática que todas las propiedades, mutaciones de estado y ejecuciones internas de métodos ocurran estrictamente en el hilo principal de la interfaz de usuario de forma segura y transparente.", c: "Deshabilitar las capacidades de inyección de dependencias de la clase.", correct: "B" },
+                { id: 15, p: "15. ¿Cómo solucionás el problema técnico de 'Priority Inversion' (Inversión de Prioridad) cuando utilizás Grand Central Dispatch (GCD) en sistemas multihilo complejos?", a: "Asignando la misma prioridad máxima absoluta a absolutamente todos los hilos de background de la app.", b: "Asegurando el uso correcto de los niveles de Quality of Service (QoS) adecuados, ya que el sistema operativo eleva de forma automática la prioridad de la cola de subprocesos baja que retiene un recurso crítico si una cola de alta prioridad está bloqueada esperándolo.", c: "Reiniciando de fábrica el sistema operativo del dispositivo en tiempo de ejecución.", correct: "B" },
+                { id: 16, p: "16. ¿Qué ventaja sustancial aporta el uso de 'Result Builders' personalizados en el desarrollo avanzado con el lenguaje Swift?", a: "Automatizar la generación del plan de pruebas unitarias unitarias de código.", b: "Permitir la creación de lenguajes específicos de dominio (DSLs) legibles y declarativos para construir estructuras de datos anidadas complejas (como menús o árboles lógicos) mediante sintaxis limpia y natural.", c: "Compilar el código en lenguaje binario ensamblador en tiempo real.", correct: "B" },
+                { id: 17, p: "17. Al configurar las opciones de distribución empresarial de una app, ¿qué mecanismo de seguridad nativo de iOS previene que los binarios compilados sean inyectados y ejecutados en dispositivos no autorizados?", a: "El uso exclusivo de variables de entorno string guardadas en SharedPreferences locales.", b: "El sistema criptográfico integrado de Provisioning Profiles (Perfiles de Provisión) enlazados a certificados de desarrollo específicos y códigos únicos de equipo (App ID / Entitlements).", c: "Bloquear las capacidades de conexión Wi-Fi de la aplicación en producción.", correct: "B" },
+                { id: 18, p: "18. Con respecto a los operadores avanzados de Combine, ¿qué diferencia de comportamiento crítico tiene el operador 'switchToLatest' frente a 'flatMap' tradicionales?", a: "'switchToLatest' transforma los tipos opcionales en strings duros de manera automática.", b: "'switchToLatest' se suscribe al publicador emitido más reciente y cancela de manera inmediata y automatizada la suscripción activa al publicador anterior, ideal para búsquedas concurrentes en tiempo real.", c: "'flatMap' deshabilita los flujos de control de errores nativos del pipeline.", correct: "B" },
+                { id: 19, p: "19. ¿Cuál es el propósito del mecanismo 'Key-Value Observing' (KVO) disponible de forma nativa en el framework Foundation?", a: "Ordenar de forma alfabética las claves de configuración de diccionarios JSON pesados.", b: "Proporcionar un patrón reactivo que permite a un objeto ser notificado de manera directa e inmediata ante cualquier modificación en las propiedades específicas de otro objeto, apoyándose en el runtime de Objective-C.", c: "Cifrar las bases de datos de persistencia local de la aplicación.", correct: "B" },
+                { id: 20, p: "20. ¿Qué técnica técnica de profiling o herramienta especializada de Xcode utilizarías para mapear de manera gráfica la existencia de ciclos de retención y objetos retenidos sin leaks huérfanos directos en el gráfico de memoria de la app?", a: "El debugger de consola clásica interactiva lldb.", b: "El visualizador integrado Memory Graph Debugger para examinar el gráfico de relaciones vivas y referencias activas entre instancias de objetos en tiempo de ejecución.", c: "Compilar el proyecto de software mediante comandos terminales build.", correct: "B" }
+            ]
+        }
+    };
+
+    function getRandomQuestions(bank, count) {
+        let shuffled = [...bank];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled.slice(0, count);
+    }
+
+    const currentLevel = localStorage.getItem('nivel_elegido') || 'ios_jr';
+    const examData = examDatabase[currentLevel];
+    
+    document.getElementById('exam-title').innerText = examData.title;
+    const container = document.getElementById('questions-container');
+    
+    const selectedQuestions = getRandomQuestions(examData.questions, 10);
+    
+    selectedQuestions.forEach((item, index) => {
+        const visualIndex = index + 1;
+        const cleanText = item.p.replace(/^\d+\.\s*/, '');
+        
+        container.innerHTML += `
+            <div class="question" data-id="${item.id}" data-correct="${item.correct}">
+                <p>${visualIndex}. ${cleanText}</p>
+                <label><input type="radio" name="q${item.id}" value="A"> A) ${item.a}</label>
+                <label><input type="radio" name="q${item.id}" value="B"> B) ${item.b}</label>
+                <label><input type="radio" name="q${item.id}" value="C"> C) ${item.c}</label>
+            </div>
+        `;
+    });
+
+    let timeLimit = 15 * 60;
+    const timerDisplay = document.getElementById('time');
+    const timerInterval = setInterval(() => {
+        let minutes = Math.floor(timeLimit / 60);
+        let seconds = timeLimit % 60;
+        timerDisplay.innerText = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+        if (timeLimit <= 0) { clearInterval(timerInterval); processAndSend(true); }
+        timeLimit--;
+    }, 1000);
+
+    function processAndSend(isAuto) {
+        clearInterval(timerInterval);
+        let score = 0;
+        let details = [];
+        let unanswered = false;
+
+        selectedQuestions.forEach((item) => {
+            const selected = document.querySelector(`input[name="q${item.id}"]:checked`);
+            if (!selected && !isAuto) { unanswered = true; }
+            
+            let val = selected ? selected.value : "X";
+            details.push(`PreguntaID_${item.id}:${val}`);
+            if (val === item.correct) score++;
+        });
+
+        if (unanswered && !isAuto) { 
+            alert("Por favor responde todas las preguntas antes de finalizar."); 
+            return; 
+        }
+
+        let seniority = "Junior (Jr)";
+        if (score >= 9) seniority = "Senior (Sr)";
+        else if (score >= 6) seniority = "Semi-Senior (Ssr)";
+
+        localStorage.setItem('test_realizado', 'true');
+
+        document.getElementById('form_nombre').value = localStorage.getItem('candidato_nombre');
+        document.getElementById('form_email').value = localStorage.getItem('candidato_email');
+        document.getElementById('form_tech').value = examData.title;
+        document.getElementById('form_score').value = `${score} / 10`;
+        document.getElementById('form_seniority').value = seniority;
+        document.getElementById('form_details').value = details.join(", ");
+
+        document.getElementById('timer-sticky').style.display = "none";
+        document.getElementById('main-container').style.display = "none";
+        document.getElementById('thanks-box').style.display = "block";
+
+        document.getElementById('hiddenRecruiterForm').submit();
+    }
+</script>
+</body>
+</html>
