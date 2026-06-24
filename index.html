@@ -44,7 +44,8 @@
             <option value="android">Android Developer</option>
             <option value="ios">iOS Developer</option>
             <option value="python">Python Developer</option>
-            <option value="powerbi">PowerBI Specialist</option>
+            <option value="powerbi">PowerBI</option>
+            <option value="datascience">Data Science</option>
             <option value="architect">Solution Architect</option>
             <option value="techlead">Technical Lead</option>
             <option value="projectlead">Project Lead</option>
@@ -108,8 +109,12 @@
         localStorage.setItem('candidato_email', email);
 
         // Lógica de ruteo inteligente según la selección
-        if (tech === 'architect' || tech === 'techlead' || tech === 'projectlead' || tech === 'powerbi') {
+// Lógica de ruteo inteligente según la selección
+        if (tech === 'architect' || tech === 'techlead' || tech === 'projectlead') {
             localStorage.setItem('nivel_elegido', tech);
+            window.location.href = `${tech}.html`;
+        } else if (tech === 'powerbi' || tech === 'datascience') {
+            localStorage.setItem('nivel_elegido', `${tech}_${level}`);
             window.location.href = `${tech}.html`;
         } else {
             // Ruteo dinámico para perfiles con niveles (Java, React, Node, Angular, Android, iOS, Python)
