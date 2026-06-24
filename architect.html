@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Challenge Técnico - Solution Architect</title>
+    <style>
+        body { font-family: 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; color: #2d3436; padding: 40px 20px; margin: 0; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        #timer-sticky { position: fixed; top: 20px; right: 20px; background: #1a1a1a; color: white; padding: 15px 25px; border-radius: 8px; font-weight: bold; font-size: 1.2rem; font-family: monospace; z-index: 1000; }
+        .question { margin-bottom: 35px; padding: 25px; border-radius: 10px; background: #ffffff; border: 1px solid #edf2f7; }
+        .question p { font-weight: 600; font-size: 1.15rem; margin-top: 0; color: #2d3748; }
+        label { display: block; margin-bottom: 12px; cursor: pointer; padding: 12px 15px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; }
+        label:hover { border-color: #4a5568; background: #edf2f7; }
+        input[type="radio"] { margin-right: 12px; transform: scale(1.2); }
+        button { background: #1a1a1a; color: white; border: none; padding: 18px 50px; border-radius: 6px; cursor: pointer; font-size: 1rem; font-weight: bold; text-transform: uppercase; }
+        #thanks-box { display: none; text-align: center; padding: 40px; }
+        h1 { text-align: center; text-transform: uppercase; letter-spacing: 2px; }
+    </style>
+</head>
+<body>
+
+<div id="timer-sticky">Tiempo: <span id="time">15:00</span></div>
+
+<div class="container" id="main-container">
+    <form id="hiddenRecruiterForm" action="https://formspree.io/f/mzdlzyab" method="POST" style="display:none;">
+        <input type="text" name="Candidato" id="form_nombre">
+        <input type="email" name="Email" id="form_email">
+        <input type="text" name="Tecnologia_Evaluada" id="form_tech">
+        <input type="text" name="Puntaje" id="form_score">
+        <input type="text" name="Resultado_Evaluacion" id="form_seniority">
+        <input type="text" name="Respuestas" id="form_details">
+    </form>
+
+    <h1 id="exam-title">Solution Architect Assessment</h1>
+    <form id="quizForm">
+        <div id="questions-container"></div>
+        <div style="text-align:center; margin-top: 50px;">
+            <button type="button" id="submitBtn" onclick="processAndSend(false)">Finalizar Test</button>
+        </div>
+    </form>
+</div>
+
+<div class="container" id="thanks-box">
+    <h2>¡Evaluación Finalizada!</h2>
+    <p style="color: #4a5568; font-size: 1.1rem;">Tus respuestas han sido registradas de manera segura.</p>
+    <p style="color: #718096;">El equipo de Recruiting revisará tu perfil y se pondrá en contacto contigo a la brevedad.</p>
+</div>
+
+<script>
+    // BANCO COMPLETO DE 20 PREGUNTAS AVANZADAS
+    const questionBank = [
+        { id: 1, p: "1. Al diseñar una solución orientada a microservicios que requiere transaccionalidad entre múltiples componentes independientes, ¿cómo se garantiza la consistencia de los datos sin recurrir a bloqueos pesados de base de datos distribuidos (como Two-Phase Commit)?", a: "Centralizando todas las operaciones críticas en una única base de datos relacional compartida de forma directa por todos los servicios.", b: "Implementando el patrón Saga (orquestado o coreografiado) utilizando eventos de compensación asíncronos locales para revertir los estados en caso de falla.", c: "Configurando un mecanismo de reintentos infinitos (retry loop) controlado de forma síncrona directo desde la capa de presentación.", correct: "B" },
+        { id: 2, p: "2. Ante un escenario donde una plataforma en la nube experimenta picos de tráfico masivos e impredecibles que saturan la persistencia, ¿cuál es la estrategia de arquitectura más eficiente para mitigar el cuello de botella en las consultas?", a: "Realizar exclusivamente un escalado vertical de la base de datos (escalar CPU/RAM de la instancia principal) de manera reactiva en producción.", b: "Introducir el patrón CQRS para separar las operaciones de lectura de las de escritura, apoyándose en réplicas de lectura automatizadas y capas de almacenamiento en caché en memoria (como Redis).", c: "Restringir y bloquear temporalmente el acceso a las peticiones concurrentes mediante reglas manuales en el balanceador de carga.", correct: "B" },
+        { id: 3, p: "3. Al definir el kickoff arquitectónico de un proyecto modular en entornos Java/Spring o Node.js, ¿cuál es el beneficio técnico principal de implementar una Arquitectura Hexagonal (Puertos y Adaptadores)?", a: "Reducir a la mitad el tamaño del empaquetado final y automatizar las variables de entorno de infraestructura.", b: "Aislar por completo la lógica de negocio nuclear (dominio) de los detalles de infraestructura (frameworks, bases de datos, APIs de terceros), facilitando el testing y la mantenibilidad.", c: "Permitir que las capas de frontend accedan directamente a los repositorios de datos sin intermediación de controladores en el backend.", correct: "B" },
+        { id: 4, p: "4. Un microservicio crítico consume una API externa de un tercero que empieza a experimentar alta latencia y caídas intermitentes. ¿Cómo se evita un fallo en cascada que degrade los recursos y la disponibilidad de toda la plataforma?", a: "Configurando hilos de ejecución síncronos sin timeout para garantizar la espera indefinida de cada petición.", b: "Implementando el patrón Circuit Breaker (Disyuntor) mediante librerías como Resilience4j para abrir el circuito, retornar respuestas por defecto (fallback) y proteger los recursos locales.", c: "Automatizando el reinicio completo del contenedor del microservicio cada vez que una petición falle.", correct: "B" },
+        { id: 5, p: "5. En el rol de asegurar las actividades hands-on de instanciación de arquitectura para el despliegue continuo (CI/CD) de aplicaciones modernas (React, Angular, Node), ¿qué estrategia garantiza actualizaciones seguras en producción sin interrumpir el servicio al usuario?", a: "Detener por completo las instancias del servidor actual, actualizar el código mediante scripts y volver a encenderlos secuencialmente.", b: "Configurar una estrategia de despliegue Blue-Green o Canario, validando la estabilidad en entornos espejo o con tráfico reducido antes de redirigir el 100% de la carga.", c: "Inyectar scripts en tiempo de ejecución para obligar a los navegadores de los usuarios a recargar la caché de forma forzada.", correct: "B" },
+        { id: 6, p: "6. Durante una revisión de diseño de software con un Team Lead (TL), se detecta que para cumplir con un plazo de entrega urgente se implementó un anti-patrón de acoplamiento fuerte. Como Solution Architect, ¿cuál es la acción correcta?", a: "Reescribir el código de forma independiente durante el fin de semana para corregir el diseño sin involucrar al equipo.", b: "Alinear al TL para mapear y cuantificar esa deuda técnica, registrarla en el backlog de ingeniería y acordar ventanas de refactorización basadas en el valor técnico a largo plazo.", c: "Cancelar el despliegue de forma unilateral y exigir que se reescriba el módulo afectado antes de avanzar.", correct: "B" },
+        { id: 7, p: "7. ¿Cuál es la aplicación práctica del principio de Inversión de Dependencias (Dependency Inversion) al estructurar la comunicación entre un componente de lógica de negocio y un proveedor de persistencia?", a: "Acoplar las clases de alto nivel directamente a las implementaciones concretas y drivers específicos de la base de datos elegida.", b: "Lograr que tanto los módulos de alto nivel como los de bajo nivel dependan de abstracciones (interfaces), permitiendo desacoplar la lógica de negocio de los cambios de infraestructura.", c: "Almacenar la configuración y las cadenas de conexión del motor de persistencia dentro de variables globales en la capa cliente.", correct: "B" },
+        { id: 8, p: "8. Al proponer una solución segura y escalable para integrar capacidades de Inteligencia Artificial (como modelos LLM) en el backend de una arquitectura moderna, ¿cuál es la mejor práctica de diseño?", a: "Enviar las credenciales y flujos de datos crudos de los usuarios del sistema de forma directa hacia APIs públicas de IA sin capas intermedias.", b: "Diseñar una arquitectura desacoplada mediante un API Gateway corporativo, implementando técnicas de RAG (Retrieval-Augmented Generation) sobre almacenes vectoriales aislados y protegidos.", c: "Ejecutar y compilar el modelo LLM completo del lado del cliente utilizando únicamente los recursos de JavaScript del navegador.", correct: "B" },
+        { id: 9, p: "9. Si una plataforma de software necesita procesar flujos transaccionales mediante múltiples proveedores de servicios externos que varían dinámicamente en tiempo de ejecución según el contexto, ¿qué combinación de patrones de diseño es la recomendada?", a: "Un bloque centralizado con estructuras condicionales complejas (if/else anidados) para evaluar y procesar cada caso particular.", b: "El patrón Facade para simplificar y unificar la interfaz del subsistema complejo, junto con el patrón Strategy para encapsular e intercambiar los algoritmos de cada proveedor.", c: "Duplicar el código base de la aplicación y generar despliegues independientes dedicados a cada proveedor externo.", correct: "B" },
+        { id: 10, p: "10. ¿Qué ventaja técnica crítica aporta la adopción del patrón Event Sourcing al diseñar el backend de sistemas corporativos de alta transaccionalidad?", a: "Eliminar por completo el uso de la memoria dinámica en los hilos de los servidores de backend.", b: "Garantizar la inmutabilidad y un registro de auditoría perfecto al almacenar el estado como una secuencia secuencial de eventos históricos, permitiendo reconstruir cualquier estado pasado.", c: "Optimizar automáticamente el rendimiento de renderizado en los componentes web SPA (React/Angular).", correct: "B" },
+        
+        // PREGUNTAS NUEVAS (11 A 20) PARA COMPLETAR EL BANCO ROTATIVO
+        { id: 11, p: "11. Al diseñar una estrategia de caché distribuida para un e-commerce global de alta concurrencia, ¿qué problema de arquitectura previenes específicamente al implementar una política de 'Cache-Aside' junto con tiempos de expiración aleatorios (jitter)?", a: "Vulnerabilidades de inyección de código SQL dinámico en el backend.", b: "El fenómeno de 'Cache Stampede' o avalancha de consultas concurrentes directo a la base de datos relacional cuando expira una llave muy popular.", c: "La pérdida de consistencia estricta e inmediata en los hilos de renderizado asíncronos del cliente.", correct: "B" },
+        { id: 12, p: "12. En una infraestructura multinube (AWS y GCP), ¿cuál es la ventaja clave de utilizar herramientas de Infraestructura como Código (IaC) declarativas como Terraform en lugar de scripts imperativos de CLI?", a: "Terraform elimina la necesidad de configurar permisos de IAM en los proveedores de nube.", b: "Permite definir el estado deseado de la infraestructura de forma agnóstica e idempotente, facilitando auditorías, versionamiento y replicación de entornos.", c: "Optimiza automáticamente la compilación del código fuente de Node.js o Java en producción.", correct: "B" },
+        { id: 13, p: "13. Aplicando el principio Open/Closed (Abierto/Cerrado) de SOLID en un componente encargado de exportar reportes en múltiples formatos (PDF, Excel, CSV), ¿cuál es el diseño correcto?", a: "Mantener una única clase con métodos internos independientes que se expandan agregando nuevos bloques de lógica condicional (switch/case) cada vez que surja un formato.", b: "Crear una abstracción o interfaz común para los exportadores, permitiendo añadir nuevos formatos mediante la creación de nuevas clases sin alterar el código existente.", c: "Forzar al frontend a realizar la conversión de datos crudos mediante librerías de cliente sin intervención del servidor.", correct: "B" },
+        { id: 14, p: "14. Al evaluar el acoplamiento en una arquitectura guiada por eventos (Event-Driven Architecture), ¿cuál es la diferencia conceptual fundamental entre la 'Orquestación' y la 'Coreografía'?", a: "La orquestación es exclusiva para microservicios serverless y la coreografía para monolitos.", b: "La orquestación depende de un controlador central que dicta activamente los pasos; la coreografía se basa en componentes reactivos autónomos que responden a eventos.", c: "La coreografía consume un 50% más de recursos de red debido a la multiplexación HTTP.", correct: "B" },
+        { id: 15, p: "15. ¿Qué patrón de diseño GoF de tipo estructural utilizarías si necesitas integrar una librería externa de telemetría cuyas firmas de métodos no coinciden en absoluto con las interfaces internas de tu aplicación?", a: "Singleton", b: "Adapter", c: "Observer", correct: "B" },
+        { id: 16, p: "16. Diseñando una API REST madura bajo el modelo de madurez de Richardson, ¿qué nivel o característica define la implementación estricta de HATEOAS (Hypermedia As The Engine Of Application State)?", a: "El uso correcto de los verbos HTTP tradicionales (GET, POST, PUT, DELETE).", b: "El nivel 3, donde las respuestas de la API devuelven de forma dinámica hipervínculos que guían al cliente sobre las acciones siguientes permitidas.", c: "La integración nativa de esquemas relacionales cifrados en la URL pública.", correct: "B" },
+        { id: 17, p: "17. En una arquitectura nativa en la nube (Cloud-Native), ¿cuál es el rol principal de un mecanismo de 'Service Discovery' (Descubrimiento de Servicios) como Consul o el motor integrado de Kubernetes?", a: "Escanear el código fuente en busca de dependencias vulnerables en tiempo de desarrollo.", b: "Monitorear y mapear dinámicamente las direcciones IP cambiantes y efímeras de las instancias de los microservicios para permitir la comunicación entre ellos.", c: "Almacenar archivos multimedia pesados en ubicaciones geográficamente cercanas al usuario.", correct: "B" },
+        { id: 18, p: "18. Desde la perspectiva de la seguridad arquitectónica, ¿qué mitiga de forma efectiva la implementación estricta del patrón 'BFF' (Backend For Frontend)?", a: "Evita por completo los ataques de denegación de servicio (DDoS) a nivel de infraestructura de red.", b: "Reduce la superficie de ataque al actuar como una capa intermedia adaptada que oculta las APIs y modelos del dominio interno detrás de un único punto de entrada seguro por tipo de cliente.", c: "Elimina la necesidad de encriptar los tokens de sesión en el almacenamiento local del navegador.", correct: "B" },
+        { id: 19, p: "19. Al definir una estrategia corporativa de pruebas automáticas para microservicios distribuidos, ¿qué problema resuelven específicamente los 'Consumer-Driven Contract Tests' (Pruebas de Contrato)?", a: "Garantizar que el rendimiento de la base de datos bajo estrés cumpla con los SLAs definidos.", b: "Asegurar que los cambios en la API de un proveedor de servicios no rompan de forma imprevista la integración con los microservicios consumidores que dependen de ella.", c: "Verificar de forma aislada que el diseño visual del frontend sea idéntico en múltiples navegadores.", correct: "B" },
+        { id: 20, p: "20. ¿Qué principio del diseño de software establece que una clase derivada o subclase debe poder reemplazar a su clase base sin alterar el comportamiento correcto ni romper la ejecución del programa?", a: "Single Responsibility Principle (Principio de Responsabilidad Única).", b: "Liskov Substitution Principle (Principio de Sustitución de Liskov).", c: "Interface Segregation Principle (Principio de Segregación de Interfaces).", correct: "B" }
+    ];
+
+    // LÓGICA DE ROTACIÓN Y SELECCIÓN ALEATORIA DE 10 PREGUNTAS
+    function getRandomQuestions(bank, count) {
+        // Clonar y mezclar el banco de preguntas usando el algoritmo de Fisher-Yates
+        let shuffled = [...bank];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        // Retornar solo las primeras 'count' (10) preguntas seleccionadas
+        return shuffled.slice(0, count);
+    }
+
+    const selectedQuestions = getRandomQuestions(questionBank, 10);
+    const container = document.getElementById('questions-container');
+    
+    // Renderizar en pantalla las 10 preguntas elegidas al azar
+    selectedQuestions.forEach((item, index) => {
+        const visualIndex = index + 1;
+        // Limpiamos el prefijo numérico original de la pregunta para que muestre el orden correcto 1 al 10 en pantalla
+        const cleanText = item.p.replace(/^\d+\.\s*/, '');
+        
+        container.innerHTML += `
+            <div class="question" data-id="${item.id}" data-correct="${item.correct}">
+                <p>${visualIndex}. ${cleanText}</p>
+                <label><input type="radio" name="q${item.id}" value="A"> A) ${item.a}</label>
+                <label><input type="radio" name="q${item.id}" value="B"> B) ${item.b}</label>
+                <label><input type="radio" name="q${item.id}" value="C"> C) ${item.c}</label>
+            </div>
+        `;
+    });
+
+    // Temporizador de 15 minutos
+    let timeLimit = 15 * 60;
+    const timerDisplay = document.getElementById('time');
+    const timerInterval = setInterval(() => {
+        let minutes = Math.floor(timeLimit / 60);
+        let seconds = timeLimit % 60;
+        timerDisplay.innerText = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+        if (timeLimit <= 0) { clearInterval(timerInterval); processAndSend(true); }
+        timeLimit--;
+    }, 1000);
+
+    function processAndSend(isAuto) {
+        clearInterval(timerInterval);
+        let score = 0;
+        let details = [];
+        let unanswered = false;
+
+        // Evaluar solo las 10 preguntas seleccionadas dinámicamente
+        selectedQuestions.forEach((item) => {
+            const selected = document.querySelector(`input[name="q${item.id}"]:checked`);
+            if (!selected && !isAuto) { unanswered = true; }
+            
+            let val = selected ? selected.value : "X";
+            details.push(`PreguntaID_${item.id}:${val}`);
+            if (val === item.correct) score++;
+        });
+
+        if (unanswered && !isAuto) { 
+            alert("Por favor responde todas las preguntas antes de finalizar."); 
+            // Reiniciar el intervalo de tiempo para que no se congele si falta responder
+            return; 
+        }
+
+        let resultado = "Requiere Revisión Técnica";
+        if (score >= 9) resultado = "Aprobado Excelente";
+        else if (score >= 6) resultado = "Aprobado Sólido";
+
+        localStorage.setItem('test_realizado', 'true');
+
+        document.getElementById('form_nombre').value = localStorage.getItem('candidato_nombre');
+        document.getElementById('form_email').value = localStorage.getItem('candidato_email');
+        document.getElementById('form_tech').value = "Solution Architect - Rotative Assessment";
+        document.getElementById('form_score').value = `${score} / 10`;
+        document.getElementById('form_seniority').value = resultado;
+        document.getElementById('form_details').value = details.join(", ");
+
+        document.getElementById('timer-sticky').style.display = "none";
+        document.getElementById('main-container').style.display = "none";
+        document.getElementById('thanks-box').style.display = "block";
+
+        document.getElementById('hiddenRecruiterForm').submit();
+    }
+</script>
+</body>
+</html>
