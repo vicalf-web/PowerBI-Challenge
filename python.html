@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Challenge Técnico - Python</title>
+    <style>
+        body { font-family: 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; color: #2d3436; padding: 40px 20px; margin: 0; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        #timer-sticky { position: fixed; top: 20px; right: 20px; background: #1a1a1a; color: white; padding: 15px 25px; border-radius: 8px; font-weight: bold; font-size: 1.2rem; font-family: monospace; z-index: 1000; }
+        .question { margin-bottom: 35px; padding: 25px; border-radius: 10px; background: #ffffff; border: 1px solid #edf2f7; }
+        .question p { font-weight: 600; font-size: 1.15rem; margin-top: 0; color: #2d3748; }
+        label { display: block; margin-bottom: 12px; cursor: pointer; padding: 12px 15px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; }
+        label:hover { border-color: #4a5568; background: #edf2f7; }
+        input[type="radio"] { margin-right: 12px; transform: scale(1.2); }
+        button { background: #1a1a1a; color: white; border: none; padding: 18px 50px; border-radius: 6px; cursor: pointer; font-size: 1rem; font-weight: bold; text-transform: uppercase; }
+        #thanks-box { display: none; text-align: center; padding: 40px; }
+        h1 { text-align: center; text-transform: uppercase; letter-spacing: 2px; }
+    </style>
+</head>
+<body>
+
+<div id="timer-sticky">Tiempo: <span id="time">15:00</span></div>
+
+<div class="container" id="main-container">
+    <form id="hiddenRecruiterForm" action="https://formspree.io/f/mzdlzyab" method="POST" style="display:none;">
+        <input type="text" name="Candidato" id="form_nombre">
+        <input type="email" name="Email" id="form_email">
+        <input type="text" name="Tecnologia_Evaluada" id="form_tech">
+        <input type="text" name="Puntaje" id="form_score">
+        <input type="text" name="Seniority_Calculado" id="form_seniority">
+        <input type="text" name="Respuestas" id="form_details">
+    </form>
+
+    <h1 id="exam-title">Cargando Examen...</h1>
+    <form id="quizForm">
+        <div id="questions-container"></div>
+        <div style="text-align:center; margin-top: 50px;">
+            <button type="button" id="submitBtn" onclick="processAndSend(false)">Finalizar Test</button>
+        </div>
+    </form>
+</div>
+
+<div class="container" id="thanks-box">
+    <h2>¡Evaluación Finalizada!</h2>
+    <p style="color: #4a5568; font-size: 1.1rem;">Tus respuestas han sido registradas de manera segura.</p>
+    <p style="color: #718096;">El equipo de Recruiting revisará tu perfil y se pondrá en contacto contigo a la brevedad.</p>
+</div>
+
+<script>
+    const examDatabase = {
+        python_jr: {
+            title: "Python Developer - Junior Assessment",
+            questions: [
+                { id: 1, p: "1. ¿Cuál es la diferencia fundamental entre una Lista (list) y una Tupla (tuple) en Python?", a: "Las listas solo guardan strings y las tuplas guardan números enteros.", b: "Las listas son mutables (se pueden modificar); las tuplas son inmutables (no cambian tras su creación).", c: "Las tuplas se borran solas de la memoria RAM automáticamente.", correct: "B" },
+                { id: 2, p: "2. ¿Cómo se define correctamente un bloque de código o estructura lógica (como un if o un for) en Python?", a: "Encerrando el código entre llaves tradicionales { }.", b: "Mediante la indentación obligatoria (espacios o tabuladores) tras los dos puntos (:).", c: "Escribiendo la palabra reservada 'end' al finalizar el bloque.", correct: "B" },
+                { id: 3, p: "3. ¿Qué tipo de colección utilizarías si requerís asegurar de forma nativa que todos sus elementos sean únicos y no admitan duplicados?", a: "list", b: "set", c: "dict", correct: "B" },
+                { id: 4, p: "4. ¿Para qué sirve el método especial '__init__' dentro de una clase de Python?", a: "Para compilar el script de código fuente a lenguaje binario ejecutable.", b: "Es el constructor de la clase que se ejecuta automáticamente al instanciar un objeto.", c: "Para eliminar los atributos privados del objeto de la memoria.", correct: "B" },
+                { id: 5, p: "5. ¿Qué utilidad tiene el uso de 'List Comprehensions' en Python?", a: "Establecer conexiones cifradas con servidores de bases de datos.", b: "Proporcionar una sintaxis concisa y elegante para crear listas nuevas a partir de secuencias existentes.", c: "Comprimir archivos de texto plano para guardarlos en el disco duro.", correct: "B" },
+                { id: 6, p: "6. ¿Qué función nativa usarías para averiguar la longitud o cantidad de elementos de una lista?", a: "length()", b: "len()", c: "size()", correct: "B" },
+                { id: 7, p: "7. ¿Qué estructura se utiliza en Python para capturar y manejar excepciones de forma segura en tiempo de ejecución?", a: "try / catch", b: "try / except", c: "if / error", correct: "B" },
+                { id: 8, p: "8. ¿Cuál es la forma correcta de agregar un nuevo elemento al final de una lista existente?", a: "mi_lista.add(elemento)", b: "mi_lista.append(elemento)", c: "mi_lista.push(elemento)", correct: "B" },
+                { id: 9, p: "9. ¿Qué significa que una variable de tipo diccionario (dict) almacene datos en formato clave-valor?", a: "Que los datos están ordenados en filas de una base de datos relacional interna.", b: "Que cada elemento se compone de un identificador único (clave) que mapea a un valor específico.", c: "Que todas las variables se guardan encriptadas de forma binaria.", correct: "B" },
+                { id: 10, p: "10. ¿Cuál es la herramienta o administrador de paquetes estándar que viene integrado para instalar librerías externas en Python?", a: "npm", b: "pip", c: "gradle", correct: "B" },
+                { id: 11, p: "11. ¿Para qué sirve la palabra clave 'pass' en una función o bloque condicional de Python?", a: "Para saltar al siguiente ciclo de un bucle de repetición de forma forzada.", b: "Como un marcador de posición (placeholder) que no hace nada, evitando errores de sintaxis en bloques vacíos.", c: "Para retornar el control de hilos al procesador de la máquina.", correct: "B" },
+                { id: 12, p: "12. ¿Qué tipo de dato retorna la expresión 'type(3.14)' en la consola de comandos?", a: "<class 'int'>", b: "<class 'float'>", c: "<class 'str'>", correct: "B" },
+                { id: 13, p: "13. ¿Cuál es el propósito del operador lógico 'in' dentro de una condición?", a: "Insertar una variable dentro de una secuencia de datos.", b: "Verificar si un elemento específico existe o está presente dentro de una colección (como una lista o string).", c: "Multiplicar matrices numéricas de forma matemática.", correct: "B" },
+                { id: 14, p: "14. ¿Qué comando de consola se utiliza de forma estándar para ejecutar un archivo llamado 'app.py'?", a: "run app.py", b: "python app.py", c: "execute app.py", correct: "B" },
+                { id: 15, p: "15. ¿Cómo se abre y cierra un archivo de texto de forma segura en Python garantizando que se liberen los recursos incluso si ocurre un error?", a: "Utilizando la función open_file() seguida de un bucle infinito.", b: "Utilizando la estructura de control 'with open(...) as archivo:'.", c: "Escribiendo la lógica dentro de un script CSS inline.", correct: "B" },
+                { id: 16, p: "16. ¿Qué significa que las cadenas de texto (str) sean inmutables en Python?", a: "Que no pueden contener caracteres alfanuméricos.", b: "Que una vez creadas, su contenido en memoria no puede ser modificado directamente; cualquier cambio genera un nuevo string.", c: "Que se destruyen solas de la RAM al finalizar la función.", correct: "B" },
+                { id: 17, p: "17. ¿Para qué se utiliza la función nativa 'range()' en un bucle for?", a: "Para medir el rango de latencia de una petición de red web.", b: "Para generar una secuencia controlada de números enteros, ideal para iterar un número fijo de veces.", c: "Para ordenar alfabéticamente listas de objetos complejos.", correct: "B" },
+                { id: 18, p: "18. ¿Cuál de las siguientes opciones define un comentario de una sola línea en Python?", a: "// Este es un comentario", b: "# Este es un comentario", c: "/* Este es un comentario */", correct: "B" },
+                { id: 19, p: "19. ¿Qué método de strings usarías si necesitás separar un texto largo en una lista de palabras basándote en los espacios?", a: "join()", b: "split()", c: "slice()", correct: "B" },
+                { id: 20, p: "20. ¿Qué significa el valor especial 'None' en Python?", a: "Representa un número entero equivalente a cero.", b: "Representa la ausencia de valor o la nulidad de un objeto de forma explícita.", c: "Un error de compilación por variables duplicadas.", correct: "B" }
+            ]
+        },
+        python_ssr: {
+            title: "Python Developer - Semi-Senior Assessment",
+            questions: [
+                { id: 1, p: "1. ¿Qué es un 'Generador' (Generator) en Python y qué ventaja técnica aporta en el manejo de memoria RAM?", a: "Una función que compila el código a binario en tiempo de ejecución de manera veloz.", b: "Una función que utiliza 'yield' para retornar datos de forma perezosa (lazy), generando elementos uno a uno sobre la marcha sin cargar la colección completa en memoria.", c: "Una herramienta exclusiva para crear bases de datos relacionales locales.", correct: "B" },
+                { id: 2, p: "2. ¿Cómo funciona conceptualmente un 'Decorador' (Decorator) en Python?", a: "Es una extensión de estilos gráficos CSS para interfaces de usuario web avanzadas.", b: "Es una función que recibe otra función como argumento y extiende o modifica su comportamiento sin alterar su código fuente de forma explícita.", c: "Un método abstracto obligatorio que implementan las clases hijas de un monolito.", correct: "B" },
+                { id: 3, p: "3. ¿Cuál es el propósito del framework FastAPI en el desarrollo de microservicios backend modernos?", a: "Administrar el renderizado de interfaces SPA del lado del cliente de forma síncrona.", b: "Proporcionar un framework web asíncrono de alto rendimiento para construir APIs basadas en tipado estándar de Python (Pydantic) con documentación automática.", c: "Monitorear el consumo de hardware de los servidores Linux.", correct: "B" },
+                { id: 4, p: "4. Trabajando con Django, ¿qué función cumple el sistema de Migraciones (Migrations)?", a: "Migrar los archivos multimedia guardados en local hacia servicios de almacenamiento S3 en la nube de forma automática.", b: "Propagar de manera controlada y versionada los cambios realizados en los modelos de Python hacia el esquema físico de la base de datos SQL.", c: "Traducir los textos de la plataforma a múltiples idiomas en tiempo de compilación.", correct: "B" },
+                { id: 5, p: "5. ¿Qué diferencia de comportamiento existe entre usar los operadores '==' e 'is' al comparar dos objetos en Python?", a: "'==' compara tipos de datos y 'is' compara los nombres de las variables.", b: "'==' compara la igualdad de los valores contenidos; 'is' evalúa la identidad de los objetos compartiendo la misma dirección de memoria.", c: "Son sinónimos perfectos intercambiables por el optimizador del compilador.", correct: "B" },
+                { id: 6, p: "6. ¿Para qué sirve usar los bloques '*args' y '**kwargs' en la firma de una función técnica?", a: "Forzar a que la función se ejecute únicamente de forma asíncrona en entornos distribuidos.", b: "Permitir que la función reciba una cantidad dinámica y variable de argumentos posicionales (*args) o basados en palabras clave (**kwargs).", c: "Cifrar los parámetros pasados ante vulnerabilidades de inyección de código.", correct: "B" },
+                { id: 7, p: "7. ¿Qué ventaja técnica aporta la librería integrada 'virtualenv' o el módulo 'venv' al iniciar un desarrollo en Python?", a: "Aumentar la velocidad de procesamiento de la CPU mediante virtualización de hilos.", b: "Aislar las dependencias y librerías por proyecto de forma independiente, evitando conflictos globales entre diferentes versiones de paquetes.", c: "Crear entornos espejo para testing automatizado de interfaces gráficas UI.", correct: "B" },
+                { id: 8, p: "8. En programación orientada a objetos con Python, ¿cómo se implementa la Herencia Múltiple y qué determina el orden de resolución de métodos (MRO)?", a: "Python no permite herencia múltiple por diseño de lenguaje.", b: "Se definen múltiples clases padres entre paréntesis en la declaración de la subclase; el orden de ejecución lo dicta el algoritmo C3 linearized (MRO).", c: "Se hereda mediante decoradores estructurales avanzados que alteran las propiedades dinámicas de los objetos.", correct: "B" },
+                { id: 9, p: "9. ¿Cuál es el propósito principal de usar la librería Pydantic en entornos de desarrollo modernos de Python?", a: "Gestionar el balanceo de carga de peticiones HTTP en servidores proxy remotos.", b: "Realizar validación de datos y gestión de configuraciones basadas en anotaciones de tipos de Python de manera robusta y en tiempo de ejecución.", c: "Compilar scripts de testing unitario de caja negra.", correct: "B" },
+                { id: 10, p: "10. Al escribir pruebas automáticas unitarias, ¿qué utilidad aporta el framework 'pytest' frente al módulo nativo 'unittest'?", a: "pytest elimina la necesidad de escribir aserciones lógicas (assert).", b: "Proporciona una sintaxis más limpia basada en funciones puras y aserciones nativas assert de Python, junto con un sistema potente de fixtures modulares.", c: "unittest es exclusivo para proyectos embebidos de IoT y pytest para servidores web.", correct: "B" },
+                { id: 11, p: "11. ¿Qué es un 'Context Manager' personalizado y qué métodos especiales debe implementar una clase para ser usado con la palabra clave 'with'?", a: "Una clase que maneja tokens de sesión; implementa login() y logout().", b: "Un gestor de recursos que debe implementar obligatoriamente los métodos especiales __enter__ y __exit__.", c: "Un interceptor de peticiones web asíncronas concurrentes.", correct: "B" },
+                { id: 12, p: "12. En el ORM de Django, ¿cuál es la diferencia clave de rendimiento entre usar 'select_related' y 'prefetch_related' al optimizar consultas?", a: "select_related borra los datos duplicados de la memoria caché local de forma automática.", b: "select_related realiza un SQL JOIN en la misma consulta (ideal para relaciones de clave foránea de uno a uno); prefetch_related realiza consultas independientes y une los datos en Python (ideal para relaciones muchos a muchos).", c: "prefetch_related se ejecuta exclusivamente en hilos síncronos del navegador del usuario.", correct: "B" },
+                { id: 13, p: "13. ¿Qué implicancia tiene que los tipos de datos 'set' y 'dict' utilicen internamente tablas de hash (Hash Tables) para el almacenamiento?", a: "Que consumen el triple de espacio en el disco duro físico del servidor.", b: "Permite que las operaciones de búsqueda, inserción y eliminación de elementos se ejecuten en un tiempo promedio constante de O(1), haciéndolas sumamente veloces.", c: "Obliga a que todos los elementos ingresados estén ordenados alfabéticamente por defecto.", correct: "B" },
+                { id: 14, p: "14. ¿Para qué se utiliza el módulo 'logging' integrado de Python en lugar de usar sentencias 'print()' en aplicaciones empresariales?", a: "Para encriptar las respuestas JSON antes de enviarlas por la red pública.", b: "Para estructurar la trazabilidad del software permitiendo definir niveles de severidad (DEBUG, INFO, WARNING, ERROR, CRITICAL) y direccionar la salida a archivos o sistemas externos.", c: "print() ralentiza el microprocesador debido a que no soporta hilos asíncronos en Node.", correct: "B" },
+                { id: 15, p: "15. ¿Qué significa el concepto de 'Duck Typing' característico del ecosistema dinámico de Python?", a: "Que el compilador exige que las clases hereden de una clase base común abstracta animal.", b: "Un enfoque de diseño donde el tipo o la clase de un objeto no importan tanto como los métodos y propiedades que implementa (si camina como pato y grazna como pato, es un pato).", c: "Un error de sintaxis al mezclar tabulaciones y espacios en el mismo script.", correct: "B" },
+                { id: 16, p: "16. ¿Qué problema de arquitectura previene el uso de la función integrada 'functools.wraps' al crear decoradores personalizados?", a: "Evita que la función original se ejecute más de una vez en entornos distribuidos.", b: "Conserva la metadata original de la función decorada (como su nombre, docstring y firma de parámetros), evitando que se pierdan o pisen con la lógica del wrapper.", c: "Optimiza la memoria dinámica asignando hilos de background estáticos.", correct: "B" },
+                { id: 17, p: "17. En FastAPI, ¿cuál es el rol principal de los 'Depends' (Inyección de Dependencias)?", a: "Establecer la conexión TLS/SSL obligatoria con la infraestructura de la nube.", b: "Abstraer y reutilizar lógica transversal (como autenticación, conexiones a base de datos o validaciones de permisos) compartiéndola limpiamente entre diferentes endpoints.", c: "Compilar esquemas JSON a formato de texto binario plano.", correct: "B" },
+                { id: 18, p: "18. ¿Cómo maneja Python la recolección de basura (Garbage Collection) para liberar la memoria de objetos que ya no se usan?", a: "Únicamente mediante escaneos manuales programados en scripts cron por el desarrollador.", b: "Principalmente mediante el conteo de referencias (Reference Counting), complementado con un recolector de basura cíclico generacional para detectar dependencias circulares huérfanas.", c: "Reiniciando de forma automatizada los hilos de ejecución de la máquina virtual del lenguaje.", correct: "B" },
+                { id: 19, p: "19. ¿Cuál de los siguientes métodos usarías si necesitás fusionar dos diccionarios en Python 3.9+ de forma limpia y directa?", a: "El método merge_dict() o concatenar strings planos.", b: "El operador de unión representado por una barra vertical (diccionario_a | diccionario_b).", c: "Un bucle for anidado iterando sobre los elementos clave-valor de forma secuencial.", correct: "B" },
+                { id: 20, p: "20. Al escribir un módulo técnico en Python, ¿cuál es el propósito de incluir el bloque de control 'if __name__ == \"__main__\":' al final del script?", a: "Configurar las variables de entorno globales del sistema operativo de testing.", b: "Asegurar que el código contenido en dicho bloque se ejecute únicamente si el archivo es corrido directamente como script principal, y no cuando es importado por otro módulo externo.", c: "Indicar al compilador que deshabilite los analizadores estáticos de código.", correct: "B" }
+            ]
+        },
+        python_snr: {
+            title: "Python Developer - Senior Assessment",
+            questions: [
+                { id: 1, p: "1. ¿Qué es el GIL (Global Interpreter Lock) en CPython y cómo afecta el rendimiento de aplicaciones con uso intensivo de CPU que intentan usar multihilo (threading)?", a: "Es una directiva de seguridad web que cifra variables; se saltea compilando en sistemas operativos Linux corporativos antiguos.", b: "Es un mecanismo que asegura que solo un hilo ejecute bytecode de Python a la vez, impidiendo aprovechar múltiples núcleos de CPU con threading nativo; se mitiga usando multiprocesamiento (multiprocessing) o extensiones C.", c: "Es un optimizador de bases de datos relacionales NoSQL; duplica el consumo de RAM de los hilos de background.", correct: "B" },
+                { id: 2, p: "2. Trabajando con programación asíncrona mediante el framework integrado 'asyncio', ¿qué ocurre internamente si ejecutas una llamada de I/O bloqueante (como una consulta SQL tradicional síncrona) directo dentro de una corrutina asíncrona?", a: "El loop de eventos duplica los hilos del procesador para compensar el retraso de manera mágica.", b: "Se bloquea por completo el Event Loop único del hilo, congelando la ejecución concurrente de todas las demás tareas asíncronas pendientes; debe delegarse la operación bloqueante a un executor (loop.run_in_executor).", c: "Se dispara una excepción estricta de compilación de tipos inmutables de Pydantic.", correct: "B" },
+                { id: 3, p: "3. ¿Qué es una 'Metaclase' (Metaclass) en Python y en qué escenario arquitectónico avanzado se justifica su implementación a nivel empresarial?", a: "Una función pura para documentar los módulos del sistema; se justifica para automatizar los reportes financieros del Project Leader.", b: "Es la clase de una clase, definiendo cómo se construyen y comportan las propias clases; se justifica para crear frameworks complejos, validaciones estrictas automáticas en el registro de APIs o APIs ORM.", c: "Un interceptor de peticiones de red cifradas; se usa para mitigar ataques informáticos Cross-Site Scripting.", correct: "B" },
+                { id: 4, p: "4. ¿Cómo previenes el riesgo de inyección de código SQL (SQL Injection) al realizar consultas avanzadas en bases de datos utilizando el ORM de Django o SQLAlchemy de forma hands-on?", a: "Sanitizando de manera manual todos los strings ingresados por los usuarios utilizando expresiones regulares complejas.", b: "Evitando el uso de strings formateados crudos (f-strings o interpolación de texto) en las consultas SQL directas, priorizando los métodos parametrizados nativos del ORM o pasando los argumentos mediante placeholders seguros del driver.", c: "Cifrando la base de datos local completa utilizando algoritmos asíncronos simétricos de sistema operativo.", correct: "B" },
+                { id: 5, p: "5. Al optimizar una aplicación masiva en producción escrita en Python que experimenta problemas de huella de memoria por la instanciación de millones de objetos ligeros similares, ¿qué optimización avanzada a nivel de clase deberías sugerir?", a: "Convertir todas las propiedades de la clase a variables globales mutables.", b: "Definir el atributo especial '__slots__' en la declaración de la clase para evitar la creación del diccionario dinámico subyacente (__dict__), reduciendo drásticamente el consumo de RAM por instancia.", c: "Migrar la lógica de la aplicación completa hacia scripts compilados en PHP de legado.", correct: "B" },
+                { id: 6, p: "6. Diseñando una arquitectura escalable de microservicios asíncronos que procesan flujos de tareas masivas en segundo plano (background tasks), ¿cómo integras de forma segura Python/Celery apoyado en brokers intermedios?", a: "Haciendo peticiones síncronas HTTP directas recurrentes contra el clúster de base de datos relacional principal.", b: "Configurando Celery desacoplado utilizando un broker robusto (como RabbitMQ o Redis) y parametrizando la serialización segura de mensajes de tareas (como formato JSON en lugar de Pickle para mitigar RCE).", c: "Duplicando el código del backend en todos los servidores web de producción para procesar de forma local.", correct: "B" },
+                { id: 7, p: "7. ¿Qué impacto técnico y de performance tiene el uso inadecuado de referencias circulares mutables complejas en aplicaciones de Python de larga ejecución?", a: "Provoca que los archivos guardados en el disco duro se vuelvan de solo lectura de forma permanente.", b: "Sobrecarga al recolector de basura (Garbage Collector generacional) ya que el Reference Counting nativo no puede liberar los objetos por sí solo, provocando incrementos episódicos de memoria y pausas Stop-the-World largas.", c: "Deshabilita de manera irreversible el bucle de enrutamiento asíncrono de las APIs web.", correct: "B" },
+                { id: 8, p: "8. Evaluando frameworks web de Python, ¿cuál es la diferencia arquitectónica fundamental entre la especificación WSGI (Web Server Gateway Interface) tradicional y ASGI?", a: "WSGI es de código cerrado corporativo y ASGI es libre basado en librerías de Node de código abierto.", b: "WSGI está diseñado bajo un modelo de ejecución síncrono y lineal por petición; ASGI extiende las capacidades para soportar arquitecturas asíncronas concurrentes nativas, WebSockets y HTTP/2 de forma nativa.", c: "WSGI es exclusivo para servidores de bases de datos relacionales SQL de Microsoft.", correct: "B" },
+                { id: 9, p: "9. ¿Cómo asegurarías de manera estricta la integridad de variables compartidas globales ante condiciones de carrera (Data Races) cuando desarrollás concurrencia asíncrona avanzada con múltiples tareas en asyncio?", a: "Deshabilitando las capacidades multihilo del procesador físico en los servidores Linux del cliente.", b: "Utilizando primitivas de sincronización asíncronas provistas por la librería nativa (como asyncio.Lock o asyncio.Semaphore) alrededor de las secciones críticas de mutación de datos.", c: "Transformando todos los tipos de datos a strings planos de texto cifrado de manera secuencial.", correct: "B" },
+                { id: 10, p: "10. ¿Cuál es el peligro latente para la seguridad del backend de utilizar la librería nativa 'pickle' para deserializar objetos estructurados complejos recibidos de fuentes de datos no confiables o APIs externas públicos?", a: "Que el script de Python falle en tiempo de compilación por inconsistencia estática de tipos de variables.", b: "Permite ataques de Ejecución Remota de Código (RCE) de alta gravedad, ya que el método especial __reduce__ del objeto manipulado puede inyectar y correr comandos arbitrarios en el sistema operativo.", c: "Ninguno, la deserialización con pickle es considerada el estándar de seguridad más infranqueable de la industria de software.", correct: "B" },
+                { id: 11, p: "11. Al diseñar arquitecturas empresariales desacopladas guiadas por eventos con Python, ¿qué patrón técnico utilizarías para forzar la validación de interfaces y firmas de métodos sin usar herencia concreta?", a: "Definir todas las firmas dentro de variables mutables de diccionarios planos globales.", b: "Implementar Protocolos (Protocols) mediante el módulo integrado 'typing' (Clases Estructurales / Static Protocol Typer) para validar la conformidad de tipos en tiempo de análisis estático.", c: "Cifrar los archivos de la app utilizando el compilador Ivy de Angular.", correct: "B" },
+                { id: 12, p: "12. ¿Qué ventaja sustancial aporta el uso del operador morsa (Walrus Operator, ':=') introducido en las versiones modernas de Python con respecto a la legibilidad y rendimiento?", a: "Permite cambiar el tipo de dato de una variable inmutable en tiempo de ejecución del script de software.", b: "Permite asignar valores a variables directamente dentro de expresiones lógicas (como un bloque if o while), evitando evaluar la misma expresión costosa o función múltiple veces.", c: "Deshabilita las capacidades del Garbage Collector sobre la porción de memoria asignada de la variable.", correct: "B" },
+                { id: 13, p: "13. ¿Qué herramienta de profiling técnica avanzada del ecosistema de Python utilizarías para diagnosticar detalladamente cuellos de botella línea por línea en el consumo de CPU de una función compleja?", a: "Pytest Coverage Tool Checker.", b: "El módulo integrado cProfile para capturar la telemetría general, y utilizar la librería avanzada line_profiler para desglosar el impacto temporal línea por línea en el script.", c: "Monitorear de forma visual el administrador de tareas del sistema operativo del servidor web.", correct: "B" },
+                { id: 14, p: "14. En una API desarrollada con FastAPI, ¿cómo afecta el uso inadecuado de endpoints declarados con 'def' estándar en lugar de 'async def' si la app maneja miles de conexiones simultáneas?", a: "Provoca que los estilos de la interfaz de usuario se pierdan por completo del lado del cliente.", b: "FastAPI corre los endpoints 'def' estándar dentro de un pool de hilos externo (thread pool) para no bloquear el Event Loop; un mal uso masivo o mal dimensionado de hilos puede saturar los recursos de concurrencia de la app.", c: "Invalida de forma irreversible los esquemas de bases de datos relacionales NoSQL locales.", correct: "B" },
+                { id: 15, p: "15. ¿Cuál es el propósito y beneficio del método especial '__call__' al implementarlo en una clase avanzada de Python?", a: "Establecer llamadas seguras de VoIP a través de protocolos asíncronos en la nube.", b: "Permite que las instancias de la clase se comporten y puedan ser invocadas de forma directa como si fuesen funciones tradicionales (Callable Objects), ideal para fábricas dinámicas o decoradores basados en clases.", c: "Destruir de forma definitiva la memoria asignada al objeto instanciado de la RAM.", correct: "B" },
+                { id: 16, p: "16. Trabajando con Django REST Framework (DRF), ¿cuál es el impacto técnico en el rendimiento de bases de datos del problema 'N+1 Queries' al serializar relaciones anidadas y cómo se mitiga?", a: "Aumenta la memoria RAM del navegador del usuario de forma exponencial; se mitiga borrando las cookies del cliente.", b: "Ejecuta una consulta SQL para la entidad principal y N consultas adicionales para sus registros relacionados; se mitiga optimizando el QuerySet de origen mediante select_related o prefetch_related.", c: "Bloquea los canales de comunicación de red web; se soluciona usando servidores proxy imperativos.", correct: "B" },
+                { id: 17, p: "17. ¿Cómo asegurarías de manera estricta la consistencia del estado en una arquitectura que utiliza variables globales en entornos con múltiples hilos reales concurrentes aprovechando extensiones en C (evadiendo el GIL)?", a: "Haciendo copias de los diccionarios mutables en archivos de texto planos de forma continua en disco.", b: "Utilizando primitivas de bloqueo nativas provistas por el módulo 'threading', como threading.Lock o threading.RLock, para sincronizar de forma atómica el acceso a las variables críticas.", c: "Forzando al Garbage Collector a ejecutarse de manera síncrona infinita en el hilo de UI principal.", correct: "B" },
+                { id: 18, p: "18. Con respecto a las corrutinas en asyncio, ¿cuál es la diferencia fundamental en el control de fallos entre usar 'asyncio.gather()' con return_exceptions=True versus configurarlo en False?", a: "True detiene de forma masiva todos los servidores web de la nube ante cualquier error leve del script.", b: "Con False, la primera excepción lanzada por una subtarea cancela inmediatamente la recolección deteniendo el pipeline; con True, los errores se tratan como resultados válidos y se devuelven ordenados en la lista de respuestas.", c: "True deshabilita las capacidades asíncronas de la directiva await de la app.", correct: "B" },
+                { id: 19, p: "19. ¿Para qué sirve implementar el método especial '__getitem__' en una clase personalizada de diseño avanzado corporativo?", a: "Encriptar las propiedades del objeto para que no puedan ser inspeccionadas desde el debugger público de Python.", b: "Permitir que el objeto admita la sintaxis de indexación tradicional mediante corchetes (objeto[clave] u objeto[indice]), haciéndolo compatible con iteraciones o rebanados (slicing) nativos.", c: "Registrar las dependencias del objeto dentro de una base de datos distribuida en red.", correct: "B" },
+                { id: 20, p: "20. ¿Qué ventaja conceptual aporta compilar código crítico de Python utilizando optimizadores JIT externos como PyPy en lugar del intérprete CPython oficial estándar?", a: "PyPy traduce el código completo a HTML nativo eliminando la necesidad de usar consolas terminales de ejecución.", b: "PyPy analiza el flujo de ejecución en tiempo real y compila las secciones calientes de código a lenguaje de máquina nativo altamente optimizado, mejorando la velocidad de procesamiento de CPU hasta en múltiples órdenes de magnitud.", c: "PyPy deshabilita la verificación dinámica de tipos del lenguaje para forzar un tipado estricto cerrado.", correct: "B" }
+            ]
+        }
+    };
+
+    function getRandomQuestions(bank, count) {
+        let shuffled = [...bank];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled.slice(0, count);
+    }
+
+    const currentLevel = localStorage.getItem('nivel_elegido') || 'python_jr';
+    const examData = examDatabase[currentLevel];
+    
+    document.getElementById('exam-title').innerText = examData.title;
+    const container = document.getElementById('questions-container');
+    
+    const selectedQuestions = getRandomQuestions(examData.questions, 10);
+    
+    selectedQuestions.forEach((item, index) => {
+        const visualIndex = index + 1;
+        const cleanText = item.p.replace(/^\d+\.\s*/, '');
+        
+        container.innerHTML += `
+            <div class="question" data-id="${item.id}" data-correct="${item.correct}">
+                <p>${visualIndex}. ${cleanText}</p>
+                <label><input type="radio" name="q${item.id}" value="A"> A) ${item.a}</label>
+                <label><input type="radio" name="q${item.id}" value="B"> B) ${item.b}</label>
+                <label><input type="radio" name="q${item.id}" value="C"> C) ${item.c}</label>
+            </div>
+        `;
+    });
+
+    let timeLimit = 15 * 60;
+    const timerDisplay = document.getElementById('time');
+    const timerInterval = setInterval(() => {
+        let minutes = Math.floor(timeLimit / 60);
+        let seconds = timeLimit % 60;
+        timerDisplay.innerText = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+        if (timeLimit <= 0) { clearInterval(timerInterval); processAndSend(true); }
+        timeLimit--;
+    }, 1000);
+
+    function processAndSend(isAuto) {
+        clearInterval(timerInterval);
+        let score = 0;
+        let details = [];
+        let unanswered = false;
+
+        selectedQuestions.forEach((item) => {
+            const selected = document.querySelector(`input[name="q${item.id}"]:checked`);
+            if (!selected && !isAuto) { unanswered = true; }
+            
+            let val = selected ? selected.value : "X";
+            details.push(`PreguntaID_${item.id}:${val}`);
+            if (val === item.correct) score++;
+        });
+
+        if (unanswered && !isAuto) { 
+            alert("Por favor responde todas las preguntas antes de finalizar."); 
+            return; 
+        }
+
+        let seniority = "Junior (Jr)";
+        if (score >= 9) seniority = "Senior (Sr)";
+        else if (score >= 6) seniority = "Semi-Senior (Ssr)";
+
+        localStorage.setItem('test_realizado', 'true');
+
+        document.getElementById('form_nombre').value = localStorage.getItem('candidato_nombre');
+        document.getElementById('form_email').value = localStorage.getItem('candidato_email');
+        document.getElementById('form_tech').value = examData.title;
+        document.getElementById('form_score').value = `${score} / 10`;
+        document.getElementById('form_seniority').value = seniority;
+        document.getElementById('form_details').value = details.join(", ");
+
+        document.getElementById('timer-sticky').style.display = "none";
+        document.getElementById('main-container').style.display = "none";
+        document.getElementById('thanks-box').style.display = "block";
+
+        document.getElementById('hiddenRecruiterForm').submit();
+    }
+</script>
+</body>
+</html>
