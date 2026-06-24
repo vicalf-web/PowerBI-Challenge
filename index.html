@@ -106,12 +106,12 @@
 
     function irAlChallenge() {
         const nombre = document.getElementById('nombre').value.trim();
-        localStorage.setItem('reclutadora_asignada', reclutadora);
+        const reclutadora = document.getElementById('reclutadora').value;
         const email = document.getElementById('email').value.trim();
         const tech = document.getElementById('tech').value;
         const level = document.getElementById('level').value;
 
-        if (!nombre || !email || !tech) {
+    if (!nombre || !email || !tech || !reclutadora) {
             alert("Por favor, completa todos los campos requeridos.");
             return;
         }
@@ -119,6 +119,7 @@
         // Guardar metadatos del candidato de forma persistente temporal
         localStorage.setItem('candidato_nombre', nombre);
         localStorage.setItem('candidato_email', email);
+        localStorage.setItem('reclutadora_asignada', reclutadora);
 
         // Lógica de ruteo inteligente según la selección
 // Lógica de ruteo inteligente según la selección
