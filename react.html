@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Challenge Técnico - React</title>
+    <style>
+        body { font-family: 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; color: #2d3436; padding: 40px 20px; margin: 0; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        #timer-sticky { position: fixed; top: 20px; right: 20px; background: #1a1a1a; color: white; padding: 15px 25px; border-radius: 8px; font-weight: bold; font-size: 1.2rem; font-family: monospace; z-index: 1000; }
+        .question { margin-bottom: 35px; padding: 25px; border-radius: 10px; background: #ffffff; border: 1px solid #edf2f7; }
+        .question p { font-weight: 600; font-size: 1.15rem; margin-top: 0; color: #2d3748; }
+        label { display: block; margin-bottom: 12px; cursor: pointer; padding: 12px 15px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; }
+        label:hover { border-color: #4a5568; background: #edf2f7; }
+        input[type="radio"] { margin-right: 12px; transform: scale(1.2); }
+        button { background: #1a1a1a; color: white; border: none; padding: 18px 50px; border-radius: 6px; cursor: pointer; font-size: 1rem; font-weight: bold; text-transform: uppercase; }
+        #thanks-box { display: none; text-align: center; padding: 40px; }
+        h1 { text-align: center; text-transform: uppercase; letter-spacing: 2px; }
+    </style>
+</head>
+<body>
+
+<div id="timer-sticky">Tiempo: <span id="time">15:00</span></div>
+
+<div class="container" id="main-container">
+    <form id="hiddenRecruiterForm" action="https://formspree.io/f/mzdlzyab" method="POST" style="display:none;">
+        <input type="text" name="Candidato" id="form_nombre">
+        <input type="email" name="Email" id="form_email">
+        <input type="text" name="Tecnologia_Evaluada" id="form_tech">
+        <input type="text" name="Puntaje" id="form_score">
+        <input type="text" name="Seniority_Calculado" id="form_seniority">
+        <input type="text" name="Respuestas" id="form_details">
+    </form>
+
+    <h1 id="exam-title">Cargando Examen...</h1>
+    <form id="quizForm">
+        <div id="questions-container"></div>
+        <div style="text-align:center; margin-top: 50px;">
+            <button type="button" id="submitBtn" onclick="processAndSend(false)">Finalizar Test</button>
+        </div>
+    </form>
+</div>
+
+<div class="container" id="thanks-box">
+    <h2>¡Evaluación Finalizada!</h2>
+    <p style="color: #4a5568; font-size: 1.1rem;">Tus respuestas han sido registradas de manera segura.</p>
+    <p style="color: #718096;">El equipo de Recruiting revisará tu perfil y se pondrá en contacto contigo a la brevedad.</p>
+</div>
+
+<script>
+    // Banco de Preguntas Completo de React (Jr, Ssr y Sr)
+    const examDatabase = {
+        react_jr: {
+            title: "React Developer - Junior Assessment",
+            keys: { q1:"B", q2:"B", q3:"B", q4:"B", q5:"B", q6:"A", q7:"B", q8:"B", q9:"A", q10:"B" },
+            questions: [
+                { p: "1. ¿Qué es un 'Componente' en React?", a: "Una base de datos que se guarda dentro de la computadora.", b: "Una pieza de código independiente y reutilizable que define una parte de la interfaz.", c: "Un archivo de estilos CSS exclusivo para animaciones." },
+                { p: "2. ¿Cuál es la forma correcta de actualizar el valor de un estado llamado 'contador'?", a: "contador = contador + 1;", b: "setContador(contador + 1);", c: "this.state.contador = +1;" },
+                { p: "3. ¿Para qué sirve el Hook 'useEffect' en un componente funcional de React?", a: "Para aplicar estilos CSS de manera dinámica.", b: "Para ejecutar efectos secundarios, como realizar peticiones a una API o sincronizar datos.", c: "Para crear un componente nuevo automáticamente." },
+                { p: "4. Al renderizar listas con .map(), ¿por qué es obligatorio asignar la propiedad 'key'?", a: "Para indicarle a Google cómo indexar los textos.", b: "Para que React identifique qué elementos han cambiado u optimice el renderizado.", c: "Para cambiar el color de fondo de forma automática." },
+                { p: "5. ¿Qué es 'Props' en React y para qué se utilizan?", a: "Propiedades del servidor que configuran las bases de datos.", b: "Argumentos o datos que se pasan de un componente padre a un hijo para compartir información.", c: "Funciones que eliminan componentes sin uso." },
+                { p: "6. ¿Qué es el 'Virtual DOM' en React?", a: "Una copia ligera en memoria del DOM real para calcular cambios de forma eficiente.", b: "Un sistema de realidad virtual diseñado para páginas web en 3D.", c: "El servidor principal que aloja el backend de la app." },
+                { p: "7. ¿Qué es JSX en el desarrollo con React?", a: "Una base de datos moderna que compite con MongoDB.", b: "Una extensión de sintaxis de JavaScript que permite escribir estructuras similares a HTML.", c: "Un formato de compresión de imágenes pesadas." },
+                { p: "8. Si pasas un arreglo vacío [] como segundo argumento a useEffect, ¿cuándo se ejecutará?", a: "El código se ejecutará de forma infinita en cada milisegundo.", b: "Una sola vez, justo después de que el componente se monte por primera vez.", c: "El código nunca se ejecutará bajo ninguna circunstancia." },
+                { p: "9. ¿Qué comando se utiliza típicamente para iniciar el servidor de desarrollo local?", a: "npm start (o npm run dev)", b: "react start-server", c: "run local-web" },
+                { p: "10. ¿Qué sucede si intentas retornar múltiples elementos HTML sin envolverlos en un fragmento o contenedor?", a: "React los organiza automáticamente dentro de una tabla.", b: "Se genera un error de compilación, ya que un componente debe retornar un único elemento raíz.", c: "La página se vuelve en blanco y negro." }
+            ]
+        },
+        react_ssr: {
+            title: "React Developer - Semi-Senior Assessment",
+            keys: { q1:"B", q2:"B", q3:"B", q4:"B", q5:"B", q6:"B", q7:"B", q8:"B", q9:"B", q10:"B" },
+            questions: [
+                { p: "1. ¿Qué es el 'Prop Drilling' y qué herramientas nativas ayudan a solucionarlo?", a: "Pérdida de datos en la nube; se soluciona usando useEffect.", b: "Pasar datos a través de múltiples niveles que no los necesitan; se soluciona con Context API.", c: "Un error de rendimiento de imágenes; se soluciona con Fragments." },
+                { p: "2. ¿Cuál es la diferencia clave entre usar el Hook useMemo y useLayoutEffect?", a: "useMemo es para clases y useLayoutEffect para funciones.", b: "useMemo almacena en caché un resultado costoso; useLayoutEffect corre de forma sincrónica ante mutaciones del DOM.", c: "No hay diferencia conceptual alguna." },
+                { p: "3. ¿Por qué es una mala práctica mutar directamente un estado (ej. lista.push())?", a: "Porque el navegador se bloqueará por seguridad.", b: "Porque React depende de la inmutabilidad para detectar cambios y re-renderizar.", c: "Porque rompe la compatibilidad de estilos dinámicos." },
+                { p: "4. Al crear un Custom Hook en React, ¿qué regla se debe respetar?", a: "Debe retornar JSX y su nombre empezar en mayúscula.", b: "Su nombre debe comenzar con 'use' y adentro puede consumir otros Hooks.", c: "Debe estar conectado directo a una base de datos SQL." },
+                { p: "5. ¿Para qué se utiliza principalmente el Hook useRef?", a: "Para crear un estado global que re-renderice la app.", b: "Para acceder directo al DOM o persistir un valor mutable que NO debe provocar renderizados.", c: "Para validar correos de formularios de forma automática." },
+                { p: "6. ¿Qué es y para qué sirve React.lazy combinado con <Suspense>?", a: "Retrasa animaciones pesadas hasta hacer scroll.", b: "Permite la carga diferida (lazy loading) de componentes mediante code-splitting.", c: "Pone en pausa la conexión cuando la web queda en segundo plano." },
+                { p: "7. Si utilizas useReducer, ¿cuál es la función del elemento 'reducer'?", a: "Reducir el peso de las imágenes en tiempo real.", b: "Una función pura que toma el estado y una acción, calcula el nuevo estado y lo retorna de forma inmutable.", c: "Un componente visual para acortar textos largos." },
+                { p: "8. ¿Qué problema ocurre si ejecutas una actualización de estado directo en el cuerpo de un componente funcional?", a: "La web se desconecta de internet de forma intermitente.", b: "Se genera un bucle infinito de renderizados, bloqueando el navegador.", c: "Se desconfiguran los filtros de navegación." },
+                { p: "9. Al consumir una API en un useEffect, ¿cuál es la mejor práctica al desmontar el componente?", a: "Borrar el localStorage del usuario de inmediato.", b: "Retornar una función de limpieza (cleanup) para cancelar la petición y evitar fugas de memoria.", c: "Recargar la página por completo para limpiar conexiones." },
+                { p: "10. En enrutamiento, ¿qué es una 'Ruta Protegida' (Protected Route)?", a: "Una página web cifrada que impide ataques de hackers.", b: "Un componente contenedor que evalúa condiciones (ej. estar autenticado) antes de permitir el acceso.", c: "Una ruta que solo funciona de forma local." }
+            ]
+        },
+        react_sr: {
+            title: "React Developer - Senior Assessment",
+            keys: { q1:"B", q2:"B", q3:"B", q4:"B", q5:"B", q6:"B", q7:"B", q8:"B", q9:"B", q10:"A" },
+            questions: [
+                { p: "1. ¿Cómo funciona el algoritmo de reconciliación 'Fiber'?", a: "Reemplaza JavaScript por WebAssembly para gráficos 3D.", b: "Divide el trabajo de renderizado en trozos pequeños y permite pausar o priorizar tareas sin congelar la interfaz.", c: "Conecta de forma directa vistas con servidores distribuidos." },
+                { p: "2. Al optimizar apps a gran escala, ¿cuál es la implicancia de usar startTransition?", a: "Fuerza a descargar imágenes pesadas en paralelo usando múltiples núcleos.", b: "Marca actualizaciones de estado como no urgentes, priorizando interacciones críticas (inputs).", c: "Deshabilita la caché del frontend por seguridad." },
+                { p: "3. ¿Qué es un Error Boundary y cuál es su limitación nativa?", a: "Una base de datos local; no lee textos planos.", b: "Un componente de clase que captura errores en hijos, pero no en eventos o código asíncrono.", c: "Un filtro de red; no funciona en redes móviles." },
+                { p: "4. En Server-Side Rendering (SSR), ¿qué diferencia hay entre Hydration e imperativo tradicional?", a: "La hidratación borra todo el HTML del servidor y descarga el bundle de cero.", b: "El servidor envía HTML estático rápido, y la hidratación acopla React añadiendo interactividad en el cliente.", c: "La hidratación comprime bases de datos de sesión." },
+                { p: "5. Al gestionar estados globales masivos con Redux o Zustand, ¿qué evita renderizados masivos?", a: "Almacenar todos los datos como un único string plano.", b: "Utilizar selectores específicos (useSelector granulares) para suscribirse solo al fragmento exacto que se necesita.", c: "Forzar la recarga del navegador en cada cambio de propiedad." },
+                { p: "6. En microfrontends con Module Federation, ¿cómo manejas colisiones de versiones de React?", a: "Descargando todas las versiones y dejando elegir al azar.", b: "Configurando dependencias en 'shared' como singleton de modo estricto en el contenedor principal.", c: "Prohibiendo componentes funcionales en la empresa." },
+                { p: "7. ¿En qué escenario específico deberías optar por useLayoutEffect en lugar de useEffect?", a: "Para realizar peticiones HTTP muy pesadas que toman minutos.", b: "Para mediciones y mutaciones del DOM sincrónicas ANTES de pintar la pantalla, evitando parpadeos visuales.", c: "Solo en dispositivos móviles muy antiguos." },
+                { p: "8. ¿Qué implicancias de rendimiento tiene la implementación de 'Server Components' en React?", a: "Reduce la indexación de Google porque no lee JavaScript avanzado.", b: "Envía piezas de HTML desde el servidor a medida que están listas, mejorando el TTFB y el SEO.", c: "Duplica el uso de datos móviles por repetición de código." },
+                { p: "9. Diseñando formularios dinámicos de cientos de campos, ¿cuál enfoque garantiza fluidez?", a: "Controlar cada input de forma estricta en la raíz del componente principal.", b: "Utilizar componentes no controlados apoyados en librerías eficientes (React Hook Form) para evitar re-renderizados continuos.", c: "Separar campos en pestañas que recarguen la página por completo." },
+                { p: "10. ¿Cuál es el lugar más seguro para almacenar un token JWT frente a ataques XSS?", a: "En la memoria de la app (tiempo de ejecución) o en cookies seguras HttpOnly y Secure.", b: "En texto plano dentro de localStorage o sessionStorage.", c: "Como parámetro visible dentro de la URL pública." }
+            ]
+        }
+    };
+
+    // Detectar qué examen renderizar basándose en lo que guardó el menú principal
+    const currentLevel = localStorage.getItem('nivel_elegido') || 'react_jr';
+    const examData = examDatabase[currentLevel];
+    
+    document.getElementById('exam-title').innerText = examData.title;
+    const container = document.getElementById('questions-container');
+    
+    // Dibujar las preguntas dinámicamente en la pantalla
+    examData.questions.forEach((item, index) => {
+        const i = index + 1;
+        container.innerHTML += `
+            <div class="question">
+                <p>${item.p}</p>
+                <label><input type="radio" name="q${i}" value="A"> A) ${item.a}</label>
+                <label><input type="radio" name="q${i}" value="B"> B) ${item.b}</label>
+                <label><input type="radio" name="q${i}" value="C"> C) ${item.c}</label>
+            </div>
+        `;
+    });
+
+    // Temporizador (15 minutos)
+    let timeLimit = 15 * 60;
+    const timerDisplay = document.getElementById('time');
+    const timerInterval = setInterval(() => {
+        let minutes = Math.floor(timeLimit / 60);
+        let seconds = timeLimit % 60;
+        timerDisplay.innerText = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+        if (timeLimit <= 0) { clearInterval(timerInterval); processAndSend(true); }
+        timeLimit--;
+    }, 1000);
+
+    function processAndSend(isAuto) {
+        clearInterval(timerInterval);
+        let score = 0;
+        let details = [];
+
+        for (let i = 1; i <= 10; i++) {
+            const selected = document.querySelector(`input[name="q${i}"]:checked`);
+            if (!selected && !isAuto) { alert("Por favor responde todas las preguntas."); return; }
+            let val = selected ? selected.value : "X";
+            details.push(`P${i}:${val}`);
+            if (val === examData.keys[`q${i}`]) score++;
+        }
+
+        let seniority = "Junior (Jr)";
+        if (score >= 9) seniority = "Senior (Sr)";
+        else if (score >= 6) seniority = "Semi-Senior (Ssr)";
+
+        // Bloqueo definitivo en este navegador para evitar reintentos
+        localStorage.setItem('test_realizado', 'true');
+
+        // Llenar el formulario invisible para Formspree
+        document.getElementById('form_nombre').value = localStorage.getItem('candidato_nombre');
+        document.getElementById('form_email').value = localStorage.getItem('candidato_email');
+        document.getElementById('form_tech').value = examData.title;
+        document.getElementById('form_score').value = `${score} / 10`;
+        document.getElementById('form_seniority').value = seniority;
+        document.getElementById('form_details').value = details.join(", ");
+
+        // Ocultar examen y mostrar pantalla de éxito limpia
+        document.getElementById('timer-sticky').style.display = "none";
+        document.getElementById('main-container').style.display = "none";
+        document.getElementById('thanks-box').style.display = "block";
+
+        // Enviar silenciosamente el email a tu casilla
+        document.getElementById('hiddenRecruiterForm').submit();
+    }
+</script>
+</body>
+</html>
